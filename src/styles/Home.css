@@ -1,0 +1,49 @@
+.video-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(320px,320px));
+    justify-content:right;
+    gap:20px;
+    padding:20px;
+}
+.video-card{
+    width:320px;
+    background:#1a1a1a;
+    border-radius:12px;
+    overflow:hidden;
+    gap:5px;
+}
+.video-card img{
+    width:100%;
+    height:180px;
+    object-fit:cover;
+    display:block;
+}
+video {
+  max-width: 60%;
+  height: 600px;
+}
+.video-link{
+    text-decoration:none;
+    color:white;
+}
+@media (max-width: 600px) {
+     .video-grid{
+        display:flex;
+        flex-direction:column;
+        gap:20px;
+        padding:12px;
+    }
+    video{
+
+        max-width: 100%;
+        height: 300px;
+    }
+    .video-card{
+        width:100%;
+    }
+   .video-card img{
+        width:100%;
+        height:220px;
+        object-fit:cover;
+    }
+}

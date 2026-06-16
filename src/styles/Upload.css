@@ -1,0 +1,173 @@
+.upload-container{
+    max-width:800px;
+    margin:30px auto;
+    padding:20px;
+    color:white;
+}
+
+.upload-container input{
+    width:100%;
+    padding:12px;
+    margin-bottom:15px;
+    background:#1e1e1e;
+    border:none;
+    border-radius:8px;
+    color:white;
+}
+
+.thumbnail-preview{
+    width:300px;
+    border-radius:10px;
+    margin-top:10px;
+}
+
+.video-preview{
+    width:100%;
+    margin-top:10px;
+    border-radius:10px;
+}
+
+.upload-container button{
+    margin-top:20px;
+    padding:12px 20px;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+}
+.upload-container textarea{
+    width:100%;
+    padding:12px;
+    background:#1e1e1e;
+    color:white;
+    border:none;
+    border-radius:8px;
+    resize:vertical;
+    min-height:120px;
+    margin-bottom:15px;
+}
+.upload-container {
+    max-width: 700px;
+    margin: 40px auto;
+    padding: 20px;
+}
+
+.upload-card {
+    background: #1a1a1a;
+    border-radius: 12px;
+    padding: 40px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.upload-card h1 {
+    color: #f1f1f1;
+    font-size: 28px;
+    margin-bottom: 8px;
+}
+
+.upload-subtitle {
+    color: #aaa;
+    margin-bottom: 30px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    color: #f1f1f1;
+    font-weight: 500;
+    margin-bottom: 6px;
+}
+
+.form-group input,
+.form-group textarea {
+    width: 100%;
+    padding: 12px 16px;
+    background: #0f0f0f;
+    border: 1px solid #3a3a3a;
+    border-radius: 8px;
+    color: #f1f1f1;
+    font-size: 14px;
+    transition: border-color 0.2s;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #3ea6ff;
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+.preview-container {
+    margin-top: 10px;
+}
+
+.thumbnail-preview {
+    max-width: 200px;
+    max-height: 120px;
+    border-radius: 8px;
+    object-fit: cover;
+}
+
+.video-preview {
+    width: 100%;
+    max-height: 300px;
+    border-radius: 8px;
+}
+
+.upload-card button {
+    width: 100%;
+    padding: 14px;
+    background: #3ea6ff;
+    border: none;
+    border-radius: 8px;
+    color: #0f0f0f;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.upload-card button:hover:not(:disabled) {
+    background: #5cb8ff;
+    transform: scale(1.01);
+}
+
+.upload-card button:disabled {
+    background: #3a3a3a;
+    cursor: not-allowed;
+    color: #888;
+}
+
+.error-message {
+    background: rgba(255, 0, 0, 0.1);
+    border: 1px solid #ff4444;
+    color: #ff4444;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.success-message {
+    background: rgba(0, 255, 0, 0.1);
+    border: 1px solid #00ff44;
+    color: #00ff44;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+@media (max-width: 600px) {
+    .upload-card {
+        padding: 20px;
+    }
+    
+    .upload-card h1 {
+        font-size: 22px;
+    }
+}

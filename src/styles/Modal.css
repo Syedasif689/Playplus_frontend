@@ -1,0 +1,103 @@
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: #1a1a1a;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 400px;
+    padding: 24px;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.modal-header h2 {
+    color: white;
+    font-size: 20px;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.modal-content input {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 16px;
+    background: #2a2a2a;
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-size: 14px;
+}
+
+.modal-content button[type="submit"] {
+    width: 100%;
+    padding: 12px;
+    background: #3ea6ff;
+    border: none;
+    border-radius: 8px;
+    color: black;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.error-message {
+    color: #ff4444;
+    font-size: 14px;
+    margin-bottom: 16px;
+    text-align: center;
+}
+
+.modal-footer {
+    margin-top: 20px;
+    text-align: center;
+    color: #aaa;
+}
+
+.modal-footer button {
+    background: none;
+    border: none;
+    color: #3ea6ff;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.user-menu {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.user-menu span {
+    color: white;
+}
+
+.user-menu button {
+    background: #3a3a3a;
+    border: none;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+}
