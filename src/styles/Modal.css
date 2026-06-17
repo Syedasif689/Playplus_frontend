@@ -101,3 +101,73 @@
     border-radius: 6px;
     cursor: pointer;
 }
+.forgot-password-modal {
+    max-width: 420px;
+}
+
+.forgot-password-modal h2 {
+    color: #f1f1f1;
+    font-size: 22px;
+    margin-bottom: 8px;
+}
+
+.forgot-password-modal p {
+    color: #aaa;
+    font-size: 14px;
+    margin-bottom: 20px;
+}
+
+.forgot-password-modal .back-btn {
+    width: 100%;
+    padding: 12px;
+    background: transparent;
+    border: 1px solid #3a3a3a;
+    border-radius: 8px;
+    color: #f1f1f1;
+    font-size: 14px;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: all 0.2s;
+}
+
+.forgot-password-modal .back-btn:hover {
+    background: #2a2a2a;
+}
+
+.success-message {
+    background: rgba(0, 255, 0, 0.1);
+    border: 1px solid #00ff44;
+    color: #00ff44;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+.divider {
+    display: flex;
+    align-items: center;
+    margin: 16px 0;
+    color: #606060;
+}
+
+.divider::before,
+.divider::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid #3a3a3a;
+}
+
+.divider span {
+    padding: 0 16px;
+    font-size: 12px;
+}
+
+.google-login-wrapper {
+    display: flex;
+    justify-content: center;
+    margin: 12px 0;
+}
+
+.google-login-wrapper > div {
+    width: 100%;
+}
