@@ -21,32 +21,37 @@ API.interceptors.request.use(
 
 // Video API calls
 export const videoApi = {
-    // Get all videos
     getAll: () => API.get('/videos/all'),
-    
-    // Get video by ID
     getVideo: (videoId) => API.get(`/videos/${videoId}`),
-    
-    // Get videos by creator
     getByCreator: (creatorId) => API.get(`/videos/creator/${creatorId}`),
-    
-    // Get user reaction
     getReaction: (videoId) => API.get(`/videos/${videoId}/reaction`),
-    
-    // Like a video
     like: (videoId) => API.post(`/videos/${videoId}/like`),
-    
-    // Dislike a video
     dislike: (videoId) => API.post(`/videos/${videoId}/dislike`),
-    
-    // Upload a video
     upload: (videoData) => API.post('/videos/upload', videoData),
-    
-    // Update a video
     update: (videoId, videoData) => API.put(`/videos/${videoId}`, videoData),
-    
-    // Delete a video
     delete: (videoId) => API.delete(`/videos/${videoId}`),
+};
+
+// Comment API calls
+export const commentApi = {
+    // Get comments for a video
+    getComments: (videoId) => API.get(`/comments/video/${videoId}`),
+    
+    // Add a comment
+    addComment: (videoId, text, parentCommentId = null) => 
+        API.post(`/comments/video/${videoId}`, { text, parentCommentId }),
+    
+    // Update a comment
+    updateComment: (commentId, text) => 
+        API.put(`/comments/${commentId}`, { text }),
+    
+    // Delete a comment
+    deleteComment: (commentId) => 
+        API.delete(`/comments/${commentId}`),
+    
+    // Like/Unlike a comment
+    likeComment: (commentId) => 
+        API.post(`/comments/${commentId}/like`),
 };
 
 export default API;

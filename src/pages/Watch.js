@@ -2,11 +2,11 @@ import { useEffect, useState, useCallback } from "react";
 import { Link, useParams } from "react-router-dom";
 import defaultVideos from "../data/videos";
 import "../styles/watch.css";
-import { videoApi } from '../services/api';
+import { videoApi, commentApi } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 
 function Watch() {
-  const { user } = useAuth(); // Use the AuthContext instead of localStorage
+  const { user } = useAuth();
   const { id } = useParams();
 
   // UI States
@@ -20,7 +20,7 @@ function Watch() {
   const [showReplyInput, setShowReplyInput] = useState({});
   const [showRepliesFor, setShowRepliesFor] = useState({});
   
-  // Video state - will be loaded from database or fallback to local
+  // Video state
   const [video, setVideo] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -39,13 +39,13 @@ function Watch() {
   
   // Comments State
   const [comments, setComments] = useState([]);
+  const [commentsLoading, setCommentsLoading] = useState(true);
 
   // Load video from database or fallback to local
   useEffect(() => {
     const loadVideo = async () => {
       setLoading(true);
       try {
-        // Try to get video from database
         const response = await videoApi.getVideo(id);
         if (response.data) {
           setVideo(response.data);
@@ -55,7 +55,6 @@ function Watch() {
         }
       } catch (error) {
         console.log("Video not in database, using local data");
-        // Fallback to local video
         const localVideo = allVideos.find(v => v.id === Number(id));
         if (localVideo) {
           setVideo(localVideo);
@@ -90,18 +89,42 @@ function Watch() {
     }
   }, [user, video?.id]);
 
-  // Load/Save Comments
+  // Load comments from database
   useEffect(() => {
-    const savedComments = localStorage.getItem(`comments_${id}`);
-    if (savedComments) {
-      setComments(JSON.parse(savedComments));
-    } else {
-      setComments([]);
-    }
-  }, [id]);
+    const loadComments = async () => {
+      if (video?.id) {
+        setCommentsLoading(true);
+        try {
+          const response = await commentApi.getComments(video.id);
+          const formattedComments = response.data.map(dbComment => ({
+            id: dbComment.id,
+            text: dbComment.text,
+            user: dbComment.user,
+            userId: dbComment.userId,
+            likes: dbComment.likes || 0,
+            likedBy: dbComment.likedBy || [],
+            replies: dbComment.replies || [],
+            createdAt: new Date(dbComment.createdAt).getTime(),
+            userAvatar: dbComment.user ? getUserAvatar(dbComment.user) : 'G',
+            avatarColor: dbComment.user ? getAvatarColor(dbComment.user) : '#3ea6ff'
+          }));
+          setComments(formattedComments);
+        } catch (error) {
+          console.error('Error loading comments from database:', error);
+          const savedComments = localStorage.getItem(`comments_${id}`);
+          if (savedComments) {
+            setComments(JSON.parse(savedComments));
+          }
+        }
+        setCommentsLoading(false);
+      }
+    };
+    loadComments();
+  }, [video?.id, id]);
 
+  // Save comments to localStorage as backup
   useEffect(() => {
-    if (id) {
+    if (id && comments.length > 0) {
       localStorage.setItem(`comments_${id}`, JSON.stringify(comments));
     }
   }, [comments, id]);
@@ -110,7 +133,7 @@ function Watch() {
     window.scrollTo(0, 0);
   }, [id]);
 
-  // Helper: Recursively find and update a comment/reply
+  // Helper functions
   const findAndUpdateNode = useCallback((nodes, targetId, updateFn) => {
     return nodes.map(node => {
       if (node.id === targetId) {
@@ -126,7 +149,6 @@ function Watch() {
     });
   }, []);
 
-  // Helper: Recursively find and delete a comment/reply
   const findAndDeleteNode = useCallback((nodes, targetId) => {
     return nodes.filter(node => {
       if (node.id === targetId) {
@@ -139,7 +161,6 @@ function Watch() {
     });
   }, []);
 
-  // Helper: Recursively insert a reply
   const insertReplyNode = useCallback((nodes, parentId, newReply) => {
     return nodes.map(node => {
       if (node.id === parentId) {
@@ -175,42 +196,63 @@ function Watch() {
     return colors[Math.abs(hash) % colors.length];
   };
 
-  // COMMENT CRUD OPERATIONS
-  const handleAddComment = useCallback(() => {
+  // COMMENT CRUD OPERATIONS - FIXED
+  const handleAddComment = useCallback(async () => {
     if (!commentText.trim()) return;
+    if (!user?.id) {
+      alert("Please login to comment");
+      return;
+    }
 
-    const newComment = {
-      id: Date.now(),
-      text: commentText.trim(),
-      user: user?.username || "Guest",
-      userId: user?.id,
-      userAvatar: user?.username ? getUserAvatar(user.username) : 'G',
-      avatarColor: user?.username ? getAvatarColor(user.username) : '#3ea6ff',
-      likes: 0,
-      likedBy: [],
-      replies: [],
-      createdAt: Date.now()
-    };
+    try {
+      const response = await commentApi.addComment(video.id, commentText.trim());
+      const newComment = {
+        id: response.data.id,
+        text: response.data.text,
+        user: response.data.user,
+        userId: response.data.userId,
+        likes: response.data.likes || 0,
+        likedBy: [],
+        replies: [],
+        createdAt: new Date(response.data.createdAt).getTime(),
+        userAvatar: response.data.user ? getUserAvatar(response.data.user) : 'G',
+        avatarColor: response.data.user ? getAvatarColor(response.data.user) : '#3ea6ff'
+      };
+      setComments(prev => [newComment, ...prev]);
+      setCommentText("");
+    } catch (error) {
+      console.error('Error adding comment:', error);
+      alert('Failed to add comment. Please try again.');
+    }
+  }, [commentText, user, video?.id]);
 
-    setComments(prev => [newComment, ...prev]);
-    setCommentText("");
-  }, [commentText, user]);
-
-  const handleEditComment = useCallback(() => {
+  const handleEditComment = useCallback(async () => {
     if (!editText.trim()) return;
 
-    setComments(prev => findAndUpdateNode(prev, editingId, node => ({
-      ...node,
-      text: editText.trim()
-    })));
-    
-    setEditingId(null);
-    setEditText("");
+    try {
+      await commentApi.updateComment(editingId, editText.trim());
+      setComments(prev => findAndUpdateNode(prev, editingId, node => ({
+        ...node,
+        text: editText.trim()
+      })));
+      setEditingId(null);
+      setEditText("");
+    } catch (error) {
+      console.error('Error updating comment:', error);
+      alert('Failed to update comment. Please try again.');
+    }
   }, [editText, editingId, findAndUpdateNode]);
 
-  const handleDeleteComment = useCallback((commentId) => {
-    if (window.confirm("Are you sure you want to delete this comment?")) {
+  const handleDeleteComment = useCallback(async (commentId) => {
+    if (!window.confirm("Are you sure you want to delete this comment?")) return;
+
+    try {
+      await commentApi.deleteComment(commentId);
       setComments(prev => findAndDeleteNode(prev, commentId));
+      alert('✅ Comment deleted successfully!');
+    } catch (error) {
+      console.error('Error deleting comment:', error);
+      alert('Failed to delete comment. Please try again.');
     }
   }, [findAndDeleteNode]);
 
@@ -224,47 +266,54 @@ function Watch() {
     setEditText("");
   }, []);
 
-  // COMMENT LIKE SYSTEM
-  const handleCommentLike = useCallback((commentId) => {
+  // COMMENT LIKE SYSTEM - FIXED
+  const handleCommentLike = useCallback(async (commentId) => {
     if (!user?.id) {
       alert("Please login to like comments");
       return;
     }
 
-    setComments(prev => findAndUpdateNode(prev, commentId, node => {
-      const hasLiked = node.likedBy?.includes(user.id);
-      
-      return {
+    try {
+      const response = await commentApi.likeComment(commentId);
+      setComments(prev => findAndUpdateNode(prev, commentId, node => ({
         ...node,
-        likes: hasLiked ? node.likes - 1 : node.likes + 1,
-        likedBy: hasLiked 
-          ? node.likedBy.filter(id => id !== user.id)
-          : [...(node.likedBy || []), user.id]
-      };
-    }));
+        likes: response.data.likes
+      })));
+    } catch (error) {
+      console.error('Error liking comment:', error);
+      alert('Failed to like comment. Please try again.');
+    }
   }, [user, findAndUpdateNode]);
 
-  // REPLY SYSTEM
-  const handleReply = useCallback((parentId) => {
+  // REPLY SYSTEM - FIXED
+  const handleReply = useCallback(async (parentId) => {
     const text = replyText[parentId];
     if (!text?.trim()) return;
 
-    const newReply = {
-      id: Date.now(),
-      text: text.trim(),
-      user: user?.username || "Guest",
-      userId: user?.id,
-      userAvatar: user?.username ? getUserAvatar(user.username) : 'G',
-      avatarColor: user?.username ? getAvatarColor(user.username) : '#3ea6ff',
-      replies: [],
-      createdAt: Date.now()
-    };
-
-    setComments(prev => insertReplyNode(prev, parentId, newReply));
-    setReplyText(prev => ({ ...prev, [parentId]: "" }));
-    setShowReplyInput(prev => ({ ...prev, [parentId]: false }));
-    setShowRepliesFor(prev => ({ ...prev, [parentId]: true }));
-  }, [replyText, user, insertReplyNode]);
+    try {
+      const response = await commentApi.addComment(video.id, text.trim(), parentId);
+      const newReply = {
+        id: response.data.id,
+        text: response.data.text,
+        user: response.data.user,
+        userId: response.data.userId,
+        likes: response.data.likes || 0,
+        likedBy: [],
+        replies: [],
+        createdAt: new Date(response.data.createdAt).getTime(),
+        userAvatar: response.data.user ? getUserAvatar(response.data.user) : 'G',
+        avatarColor: response.data.user ? getAvatarColor(response.data.user) : '#3ea6ff'
+      };
+      
+      setComments(prev => insertReplyNode(prev, parentId, newReply));
+      setReplyText(prev => ({ ...prev, [parentId]: "" }));
+      setShowReplyInput(prev => ({ ...prev, [parentId]: false }));
+      setShowRepliesFor(prev => ({ ...prev, [parentId]: true }));
+    } catch (error) {
+      console.error('Error adding reply:', error);
+      alert('Failed to add reply. Please try again.');
+    }
+  }, [replyText, video?.id, insertReplyNode]);
 
   const toggleReplyInput = useCallback((id) => {
     setShowReplyInput(prev => ({ ...prev, [id]: !prev[id] }));
@@ -421,15 +470,12 @@ function Watch() {
 
         {/* Scrollable Content */}
         <div className="scrollable-content">
-          {/* Video Title */}
           <h2>{video.title}</h2>
 
-          {/* Channel Link */}
           <Link to={`/channel/${video.creator}`} className="channel-link">
             {video.creator}
           </Link>
 
-          {/* Description */}
           <div className="video-description">
             <p>
               {showFullDescription
@@ -444,7 +490,6 @@ function Watch() {
             )}
           </div>
 
-          {/* Video Actions */}
           <div className="actions">
             <button 
               onClick={() => handleVideoReaction("like")}
@@ -488,7 +533,6 @@ function Watch() {
 
               {showComments && (
                 <>
-                  {/* Add Comment Input */}
                   <div className="comment-input-area">
                     <div className="comment-input-wrapper">
                       <div className="comment-avatar">
@@ -528,140 +572,143 @@ function Watch() {
                     </div>
                   </div>
 
-                  {/* Comments List */}
                   <div className="comments-list-container">
-                    <div className="comments-list">
-                      {sortedComments.map(comment => {
-                        const replyCount = countReplies(comment.replies);
-                        const hasReplies = replyCount > 0;
-                        const showReplies = showRepliesFor[comment.id] || false;
-                        
-                        return (
-                          <div key={comment.id} className="comment-card-item">
-                            <div className="comment-avatar">
-                              <div 
-                                className="avatar small" 
-                                style={{ 
-                                  backgroundColor: comment.avatarColor || getAvatarColor(comment.user) 
-                                }}
-                              >
-                                {comment.userAvatar || comment.user?.charAt(0).toUpperCase() || 'G'}
-                              </div>
-                            </div>
-                            <div className="comment-content-wrapper">
-                              <div className="comment-header">
-                                <strong>{comment.user}</strong>
-                                <span className="comment-date">
-                                  {new Date(comment.createdAt).toLocaleDateString()}
-                                </span>
-                              </div>
-
-                              {editingId === comment.id ? (
-                                <div className="edit-comment">
-                                  <input
-                                    type="text"
-                                    value={editText}
-                                    onChange={(e) => setEditText(e.target.value)}
-                                    onKeyPress={(e) => e.key === "Enter" && handleEditComment()}
-                                    autoFocus
-                                  />
-                                  <button onClick={handleEditComment}>Save</button>
-                                  <button onClick={handleCancelEdit}>Cancel</button>
+                    {commentsLoading ? (
+                      <div className="loading-comments">Loading comments...</div>
+                    ) : (
+                      <div className="comments-list">
+                        {sortedComments.map(comment => {
+                          const replyCount = countReplies(comment.replies);
+                          const hasReplies = replyCount > 0;
+                          const showReplies = showRepliesFor[comment.id] || false;
+                          
+                          return (
+                            <div key={comment.id} className="comment-card-item">
+                              <div className="comment-avatar">
+                                <div 
+                                  className="avatar small" 
+                                  style={{ 
+                                    backgroundColor: comment.avatarColor || getAvatarColor(comment.user) 
+                                  }}
+                                >
+                                  {comment.userAvatar || comment.user?.charAt(0).toUpperCase() || 'G'}
                                 </div>
-                              ) : (
-                                <>
-                                  <div className="comment-text">{comment.text}</div>
-                                  <div className="comment-actions">
-                                    <button 
-                                      onClick={() => handleCommentLike(comment.id)}
-                                      className={`like-btn ${comment.likedBy?.includes(user?.id) ? "liked" : ""}`}
-                                    >
-                                      👍 {comment.likes}
-                                    </button>
+                              </div>
+                              <div className="comment-content-wrapper">
+                                <div className="comment-header">
+                                  <strong>{comment.user}</strong>
+                                  <span className="comment-date">
+                                    {new Date(comment.createdAt).toLocaleDateString()}
+                                  </span>
+                                </div>
 
-                                    <button 
-                                      onClick={() => toggleReplyInput(comment.id)}
-                                      className="reply-btn"
-                                    >
-                                      Reply
-                                    </button>
-
-                                    {user?.id === comment.userId && (
-                                      <>
-                                        <button onClick={() => handleStartEdit(comment.id, comment.text)}>
-                                          Edit
-                                        </button>
-                                        <button onClick={() => handleDeleteComment(comment.id)}>
-                                          Delete
-                                        </button>
-                                      </>
-                                    )}
+                                {editingId === comment.id ? (
+                                  <div className="edit-comment">
+                                    <input
+                                      type="text"
+                                      value={editText}
+                                      onChange={(e) => setEditText(e.target.value)}
+                                      onKeyPress={(e) => e.key === "Enter" && handleEditComment()}
+                                      autoFocus
+                                    />
+                                    <button onClick={handleEditComment}>Save</button>
+                                    <button onClick={handleCancelEdit}>Cancel</button>
                                   </div>
+                                ) : (
+                                  <>
+                                    <div className="comment-text">{comment.text}</div>
+                                    <div className="comment-actions">
+                                      <button 
+                                        onClick={() => handleCommentLike(comment.id)}
+                                        className="like-btn"
+                                      >
+                                        👍 {comment.likes}
+                                      </button>
 
-                                  {showReplyInput[comment.id] && (
-                                    <div className="inline-reply-input">
-                                      <div className="reply-input-wrapper">
-                                        <div className="reply-avatar">
-                                          <div 
-                                            className="avatar tiny" 
-                                            style={{ 
-                                              backgroundColor: user?.username ? getAvatarColor(user.username) : '#3ea6ff' 
-                                            }}
-                                          >
-                                            {user?.username ? getUserAvatar(user.username) : 'G'}
+                                      <button 
+                                        onClick={() => toggleReplyInput(comment.id)}
+                                        className="reply-btn"
+                                      >
+                                        Reply
+                                      </button>
+
+                                      {user?.id === comment.userId && (
+                                        <>
+                                          <button onClick={() => handleStartEdit(comment.id, comment.text)}>
+                                            Edit
+                                          </button>
+                                          <button onClick={() => handleDeleteComment(comment.id)}>
+                                            Delete
+                                          </button>
+                                        </>
+                                      )}
+                                    </div>
+
+                                    {showReplyInput[comment.id] && (
+                                      <div className="inline-reply-input">
+                                        <div className="reply-input-wrapper">
+                                          <div className="reply-avatar">
+                                            <div 
+                                              className="avatar tiny" 
+                                              style={{ 
+                                                backgroundColor: user?.username ? getAvatarColor(user.username) : '#3ea6ff' 
+                                              }}
+                                            >
+                                              {user?.username ? getUserAvatar(user.username) : 'G'}
+                                            </div>
                                           </div>
-                                        </div>
-                                        <div className="reply-input-field">
-                                          <input
-                                            type="text"
-                                            placeholder="Write a reply..."
-                                            value={replyText[comment.id] || ""}
-                                            onChange={(e) => setReplyText(prev => ({ ...prev, [comment.id]: e.target.value }))}
-                                            onKeyPress={(e) => e.key === "Enter" && handleReply(comment.id)}
-                                            autoFocus
-                                          />
-                                          <div className="reply-input-actions">
-                                            <button onClick={() => toggleReplyInput(comment.id)}>
-                                              Cancel
-                                            </button>
-                                            <button onClick={() => handleReply(comment.id)}>
-                                              Reply
-                                            </button>
+                                          <div className="reply-input-field">
+                                            <input
+                                              type="text"
+                                              placeholder="Write a reply..."
+                                              value={replyText[comment.id] || ""}
+                                              onChange={(e) => setReplyText(prev => ({ ...prev, [comment.id]: e.target.value }))}
+                                              onKeyPress={(e) => e.key === "Enter" && handleReply(comment.id)}
+                                              autoFocus
+                                            />
+                                            <div className="reply-input-actions">
+                                              <button onClick={() => toggleReplyInput(comment.id)}>
+                                                Cancel
+                                              </button>
+                                              <button onClick={() => handleReply(comment.id)}>
+                                                Reply
+                                              </button>
+                                            </div>
                                           </div>
                                         </div>
                                       </div>
-                                    </div>
-                                  )}
+                                    )}
 
-                                  {hasReplies && (
-                                    <div className="replies-toggle">
-                                      <button 
-                                        onClick={() => toggleRepliesVisibility(comment.id)}
-                                        className="replies-toggle-btn"
-                                      >
-                                        {showReplies ? "▼" : "▶"} {replyCount} {replyCount === 1 ? "Reply" : "Replies"}
-                                      </button>
-                                    </div>
-                                  )}
+                                    {hasReplies && (
+                                      <div className="replies-toggle">
+                                        <button 
+                                          onClick={() => toggleRepliesVisibility(comment.id)}
+                                          className="replies-toggle-btn"
+                                        >
+                                          {showReplies ? "▼" : "▶"} {replyCount} {replyCount === 1 ? "Reply" : "Replies"}
+                                        </button>
+                                      </div>
+                                    )}
 
-                                  {hasReplies && showReplies && (
-                                    <div className="replies-container">
-                                      {comment.replies && comment.replies.length > 0 && renderReplies(comment.replies, 0)}
-                                    </div>
-                                  )}
-                                </>
-                              )}
+                                    {hasReplies && showReplies && (
+                                      <div className="replies-container">
+                                        {comment.replies && comment.replies.length > 0 && renderReplies(comment.replies, 0)}
+                                      </div>
+                                    )}
+                                  </>
+                                )}
+                              </div>
                             </div>
-                          </div>
-                        );
-                      })}
+                          );
+                        })}
 
-                      {comments.length === 0 && (
-                        <div className="no-comments">
-                          <p>No comments yet. Be the first to comment!</p>
-                        </div>
-                      )}
-                    </div>
+                        {comments.length === 0 && (
+                          <div className="no-comments">
+                            <p>No comments yet. Be the first to comment!</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </>
               )}
