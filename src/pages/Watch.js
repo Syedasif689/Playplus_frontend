@@ -28,6 +28,8 @@ function Watch() {
   const [likes, setLikes] = useState(0);
   const [dislikes, setDislikes] = useState(0);
   const [shares, setShares] = useState(0);
+  const [views, setViews] = useState(0);           // ✅ NEW: Views state
+  const [viewTracked, setViewTracked] = useState(false);  // ✅ NEW: Prevent duplicate tracking
   
   // Video Reaction
   const [reaction, setReaction] = useState(null);
@@ -52,6 +54,7 @@ function Watch() {
           setLikes(response.data.likes || 0);
           setDislikes(response.data.dislikes || 0);
           setShares(response.data.shareCount || 0);
+          setViews(response.data.views || 0);  // ✅ NEW: Load views
         }
       } catch (error) {
         console.log("Video not in database, using local data");
@@ -61,6 +64,7 @@ function Watch() {
           setLikes(localVideo.likes || 120);
           setDislikes(localVideo.dislikes || 5);
           setShares(localVideo.shares || 20);
+          setViews(localVideo.views || 0);  // ✅ NEW: Load views from local
         }
       }
       setLoading(false);
@@ -71,6 +75,34 @@ function Watch() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
+
+  // ✅ NEW: Track view after video loads
+  useEffect(() => {
+    const trackView = async () => {
+      if (video?.id && !viewTracked) {
+        try {
+          console.log('📊 Tracking view for video:', video.id);
+          const response = await videoApi.trackView(video.id);
+          console.log('📊 View tracking response:', response.data);
+          
+          if (response.data && response.data.views !== undefined) {
+            setViews(response.data.views);
+          }
+          setViewTracked(true);
+        } catch (error) {
+          console.error('❌ Error tracking view:', error);
+          // Don't increment locally on error
+        }
+      }
+    };
+
+    // Track view after 1 second of watching
+    const timeoutId = setTimeout(() => {
+      trackView();
+    }, 1000);
+
+    return () => clearTimeout(timeoutId);
+  }, [video?.id, viewTracked]);
 
   // Load user reaction
   useEffect(() => {
@@ -194,6 +226,16 @@ function Watch() {
       hash = username.charCodeAt(i) + ((hash << 5) - hash);
     }
     return colors[Math.abs(hash) % colors.length];
+  };
+
+  // ✅ NEW: Format views count
+  const formatViews = (count) => {
+    if (count >= 1000000) {
+      return (count / 1000000).toFixed(1) + 'M';
+    } else if (count >= 1000) {
+      return (count / 1000).toFixed(1) + 'K';
+    }
+    return count;
   };
 
   // COMMENT CRUD OPERATIONS - FIXED
@@ -470,7 +512,11 @@ function Watch() {
 
         {/* Scrollable Content */}
         <div className="scrollable-content">
-          <h2>{video.title}</h2>
+          {/* ✅ Video Title with Views */}
+          <div className="video-header">
+            <h2>{video.title}</h2>
+            <p className="video-views">{formatViews(views)} views</p>
+          </div>
 
           <Link to={`/channel/${video.creator}`} className="channel-link">
             {video.creator}
