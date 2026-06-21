@@ -9,6 +9,7 @@ import Channel from "./pages/Channel";
 import Profile from "./pages/Profile";
 import Subscriptions from "./pages/Subscriptions";
 import Trending from "./pages/Trending";
+import Milestones from './pages/Milestones';
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
           <Route path="/profile" element={<Profile />} />
           <Route path="/subscriptions" element={<Subscriptions />} />
           <Route path="/trending" element={<Trending />} />
+          <Route path="/milestones" element={<Milestones />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

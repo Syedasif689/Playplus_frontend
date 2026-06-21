@@ -281,7 +281,7 @@ function Upload() {
                     {success && <div className="success-message">{success}</div>}
 
                     <button type="submit" disabled={loading}>
-                        {loading ? `Uploading... ${uploadProgress}%` : '📤 Upload to Cloud'}
+                        {loading ? `Uploading... ${uploadProgress}%` : ' Upload '}
                     </button>
                 </form>
             </div>

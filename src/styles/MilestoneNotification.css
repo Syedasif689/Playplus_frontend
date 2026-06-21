@@ -1,0 +1,245 @@
+/* Milestone Notification */
+.milestone-notification {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    max-width: 400px;
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    border: 2px solid #ffd93d;
+    border-radius: 16px;
+    padding: 20px;
+    z-index: 9999;
+    box-shadow: 0 10px 40px rgba(255, 215, 0, 0.2);
+    animation: slideIn 0.5s ease, pulse 2s ease-in-out 1s;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(120%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+}
+
+.milestone-content {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.milestone-icon {
+    font-size: 40px;
+    animation: bounce 1s ease infinite;
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+.milestone-details {
+    flex: 1;
+}
+
+.milestone-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #ffd93d;
+    margin-bottom: 4px;
+}
+
+.milestone-count {
+    font-size: 20px;
+    font-weight: 700;
+    color: #f1f1f1;
+    margin-bottom: 4px;
+}
+
+.milestone-message {
+    font-size: 13px;
+    color: #aaa;
+}
+
+.milestone-close {
+    background: transparent;
+    border: none;
+    color: #aaa;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 4px 8px;
+    transition: color 0.2s;
+}
+
+.milestone-close:hover {
+    color: #f1f1f1;
+}
+
+.milestone-progress {
+    margin-top: 12px;
+    height: 4px;
+    background: #2a2a2a;
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.milestone-progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #ffd93d, #ff6b6b);
+    border-radius: 2px;
+    animation: progress 8s linear forwards;
+}
+
+@keyframes progress {
+    from { width: 100%; }
+    to { width: 0%; }
+}
+
+/* Celebration Animation */
+.milestone-celebration {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 99999;
+    animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.celebration-content {
+    text-align: center;
+    padding: 40px;
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    border-radius: 24px;
+    border: 3px solid #ffd93d;
+    box-shadow: 0 0 60px rgba(255, 215, 0, 0.3);
+    position: relative;
+    overflow: hidden;
+    max-width: 500px;
+    animation: scaleIn 0.5s ease;
+}
+
+@keyframes scaleIn {
+    from {
+        transform: scale(0.5);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.celebration-emoji {
+    font-size: 80px;
+    display: block;
+    margin-bottom: 16px;
+    animation: bounce 1s ease infinite;
+}
+
+.celebration-text {
+    color: #f1f1f1;
+}
+
+.celebration-title {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    background: linear-gradient(90deg, #ffd93d, #ff6b6b);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.celebration-count {
+    font-size: 32px;
+    font-weight: 700;
+    color: #f1f1f1;
+}
+
+/* Confetti */
+.confetti-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.confetti {
+    position: absolute;
+    top: -10px;
+    animation: confettiFall 3s ease-in forwards;
+}
+
+@keyframes confettiFall {
+    0% {
+        transform: translateY(0) rotate(0deg);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(400px) rotate(720deg);
+        opacity: 0;
+    }
+}
+
+/* Mobile Responsive */
+@media (max-width: 480px) {
+    .milestone-notification {
+        bottom: 16px;
+        right: 16px;
+        left: 16px;
+        max-width: none;
+        padding: 16px;
+    }
+    
+    .milestone-icon {
+        font-size: 30px;
+    }
+    
+    .milestone-count {
+        font-size: 18px;
+    }
+    
+    .milestone-title {
+        font-size: 12px;
+    }
+    
+    .milestone-message {
+        font-size: 12px;
+    }
+    
+    .celebration-content {
+        padding: 24px;
+        max-width: 90%;
+    }
+    
+    .celebration-emoji {
+        font-size: 60px;
+    }
+    
+    .celebration-title {
+        font-size: 20px;
+    }
+    
+    .celebration-count {
+        font-size: 24px;
+    }
+}

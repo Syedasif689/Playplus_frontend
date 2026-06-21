@@ -27,9 +27,12 @@ function Watch() {
   // Video Stats
   const [likes, setLikes] = useState(0);
   const [dislikes, setDislikes] = useState(0);
-  const [shares, setShares] = useState(0);
-  const [views, setViews] = useState(0);           // ✅ NEW: Views state
-  const [viewTracked, setViewTracked] = useState(false);  // ✅ NEW: Prevent duplicate tracking
+  const [views, setViews] = useState(0);
+  const [viewTracked, setViewTracked] = useState(false);
+  
+  // Share states
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [shareCopied, setShareCopied] = useState(false);
   
   // Video Reaction
   const [reaction, setReaction] = useState(null);
@@ -53,8 +56,7 @@ function Watch() {
           setVideo(response.data);
           setLikes(response.data.likes || 0);
           setDislikes(response.data.dislikes || 0);
-          setShares(response.data.shareCount || 0);
-          setViews(response.data.views || 0);  // ✅ NEW: Load views
+          setViews(response.data.views || 0);
         }
       } catch (error) {
         console.log("Video not in database, using local data");
@@ -63,8 +65,7 @@ function Watch() {
           setVideo(localVideo);
           setLikes(localVideo.likes || 120);
           setDislikes(localVideo.dislikes || 5);
-          setShares(localVideo.shares || 20);
-          setViews(localVideo.views || 0);  // ✅ NEW: Load views from local
+          setViews(localVideo.views || 0);
         }
       }
       setLoading(false);
@@ -76,7 +77,7 @@ function Watch() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  // ✅ NEW: Track view after video loads
+  // Track view after video loads
   useEffect(() => {
     const trackView = async () => {
       if (video?.id && !viewTracked) {
@@ -91,12 +92,10 @@ function Watch() {
           setViewTracked(true);
         } catch (error) {
           console.error('❌ Error tracking view:', error);
-          // Don't increment locally on error
         }
       }
     };
 
-    // Track view after 1 second of watching
     const timeoutId = setTimeout(() => {
       trackView();
     }, 1000);
@@ -228,7 +227,7 @@ function Watch() {
     return colors[Math.abs(hash) % colors.length];
   };
 
-  // ✅ NEW: Format views count
+  // Format views count
   const formatViews = (count) => {
     if (count >= 1000000) {
       return (count / 1000000).toFixed(1) + 'M';
@@ -238,7 +237,71 @@ function Watch() {
     return count;
   };
 
-  // COMMENT CRUD OPERATIONS - FIXED
+  // SHARE FUNCTIONALITY - No share count tracking
+  const handleShare = async () => {
+    const url = window.location.href;
+
+    // Try native share API first (mobile)
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `${video?.title || 'Play+ Video'} - Play+`,
+          text: `Check out "${video?.title || 'Play+ Video'}" by ${video?.creator || 'Play+'}`,
+          url: url
+        });
+        return;
+      } catch (error) {
+        if (error.name !== 'AbortError') {
+          console.error('Share error:', error);
+        }
+      }
+    }
+
+    // If native share fails, show custom modal
+    setShowShareModal(true);
+  };
+
+  const handleCopyLink = async () => {
+    const url = window.location.href;
+
+    try {
+      await navigator.clipboard.writeText(url);
+      setShareCopied(true);
+      setTimeout(() => setShareCopied(false), 3000);
+    } catch (error) {
+      window.prompt('Copy this link to share:', url);
+    }
+  };
+
+  const handleWhatsAppShare = () => {
+    const url = window.location.href;
+    const text = `🎬 Check out "${video?.title || 'Play+ Video'}" on Play+!\n\n${url}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+  };
+
+  const handleTwitterShare = () => {
+    const url = window.location.href;
+    const text = `🎬 Check out "${video?.title || 'Play+ Video'}" on Play+!`;
+    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank');
+  };
+
+  const handleFacebookShare = () => {
+    const url = window.location.href;
+    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, '_blank');
+  };
+
+  const handleRedditShare = () => {
+    const url = window.location.href;
+    const text = `🎬 Check out "${video?.title || 'Play+ Video'}" on Play+!`;
+    window.open(`https://www.reddit.com/submit?url=${encodeURIComponent(url)}&title=${encodeURIComponent(text)}`, '_blank');
+  };
+
+  const closeShareModal = () => {
+    setShowShareModal(false);
+    setShareCopied(false);
+  };
+
+  // COMMENT CRUD OPERATIONS
   const handleAddComment = useCallback(async () => {
     if (!commentText.trim()) return;
     if (!user?.id) {
@@ -308,7 +371,7 @@ function Watch() {
     setEditText("");
   }, []);
 
-  // COMMENT LIKE SYSTEM - FIXED
+  // COMMENT LIKE SYSTEM
   const handleCommentLike = useCallback(async (commentId) => {
     if (!user?.id) {
       alert("Please login to like comments");
@@ -327,7 +390,7 @@ function Watch() {
     }
   }, [user, findAndUpdateNode]);
 
-  // REPLY SYSTEM - FIXED
+  // REPLY SYSTEM
   const handleReply = useCallback(async (parentId) => {
     const text = replyText[parentId];
     if (!text?.trim()) return;
@@ -399,12 +462,6 @@ function Watch() {
       }
     }
   }, [user, video]);
-
-  const handleShare = useCallback(() => {
-    setShares(prev => prev + 1);
-    navigator.clipboard?.writeText(window.location.href);
-    alert("Link copied to clipboard!");
-  }, []);
 
   const countReplies = useCallback((replies) => {
     if (!replies || replies.length === 0) return 0;
@@ -512,7 +569,7 @@ function Watch() {
 
         {/* Scrollable Content */}
         <div className="scrollable-content">
-          {/* ✅ Video Title with Views */}
+          {/* Video Title with Views */}
           <div className="video-header">
             <h2>{video.title}</h2>
             <p className="video-views">{formatViews(views)} views</p>
@@ -551,8 +608,9 @@ function Watch() {
               👎 {dislikes}
             </button>
 
+            {/* Share Button - No count */}
             <button onClick={handleShare} className="action-btn">
-              🔗 Share {shares}
+              🔗 Share
             </button>
           </div>
 
@@ -780,6 +838,53 @@ function Watch() {
           </Link>
         ))}
       </div>
+
+      {/* SHARE MODAL */}
+      {showShareModal && (
+        <div className="share-modal-overlay" onClick={closeShareModal}>
+          <div className="share-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="share-modal-header">
+              <h3>Share Video</h3>
+              <button className="share-modal-close" onClick={closeShareModal}>✕</button>
+            </div>
+            
+            <div className="share-modal-body">
+              <div className="share-link-section">
+                <input 
+                  type="text" 
+                  value={`${window.location.href}`} 
+                  readOnly 
+                  className="share-link-input"
+                />
+                <button 
+                  className={`share-copy-btn ${shareCopied ? 'copied' : ''}`} 
+                  onClick={handleCopyLink}
+                >
+                  {shareCopied ? '✅ Copied!' : '📋 Copy'}
+                </button>
+              </div>
+
+              <div className="share-social-section">
+                <p>Share via:</p>
+                <div className="share-social-buttons">
+                  <button onClick={handleWhatsAppShare} className="share-social-btn whatsapp">
+                    💬 WhatsApp
+                  </button>
+                  <button onClick={handleTwitterShare} className="share-social-btn twitter">
+                    🐦 Twitter
+                  </button>
+                  <button onClick={handleFacebookShare} className="share-social-btn facebook">
+                    📘 Facebook
+                  </button>
+                  <button onClick={handleRedditShare} className="share-social-btn reddit">
+                    🤖 Reddit
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

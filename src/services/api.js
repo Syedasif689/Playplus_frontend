@@ -30,6 +30,11 @@ export const videoApi = {
     upload: (videoData) => API.post('/videos/upload', videoData),
     update: (videoId, videoData) => API.put(`/videos/${videoId}`, videoData),
     delete: (videoId) => API.delete(`/videos/${videoId}`),
+    // ✅ ADDED: Track video view
+    trackView: (videoId) => {
+        console.log('📤 Sending view tracking request for video:', videoId);
+        return API.post(`/videos/${videoId}/view`);
+    },
 };
 
 // Comment API calls
