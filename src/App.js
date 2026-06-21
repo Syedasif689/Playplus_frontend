@@ -1,12 +1,14 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+﻿import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import Navbar from "./components/Navbar";
+
 import Home from "./pages/Home";
 import Watch from "./pages/Watch";
 import Upload from "./pages/Upload";
-import EditVideo from "./pages/EditVideo";
 import Channel from "./pages/Channel";
 import Profile from "./pages/Profile";
+import Subscriptions from "./pages/Subscriptions";
+import Trending from "./pages/Trending";
 
 function App() {
   return (
@@ -17,9 +19,10 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/watch/:id" element={<Watch />} />
           <Route path="/upload" element={<Upload />} />
-          <Route path="/edit/:videoId" element={<EditVideo />} />
           <Route path="/channel/:creator" element={<Channel />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/subscriptions" element={<Subscriptions />} />
+          <Route path="/trending" element={<Trending />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

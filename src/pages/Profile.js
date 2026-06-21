@@ -5,30 +5,35 @@ import { videoApi } from '../services/api';
 import '../styles/Profile.css';
 
 function Profile() {
-    const { user, logout } = useAuth();
+    const { user, logout, loading: authLoading } = useAuth(); // ✅ Get loading state
     const navigate = useNavigate();
     const [userVideos, setUserVideos] = useState([]);
     const [loading, setLoading] = useState(true);
     const [deleting, setDeleting] = useState(null);
+    const [subscriberCount, setSubscriberCount] = useState(0);
     const [stats, setStats] = useState({
         totalVideos: 0,
         totalViews: 0,
         totalLikes: 0
     });
 
+    // ✅ Wait for auth to load before checking user
     useEffect(() => {
-        if (!user) {
+        if (!authLoading && !user) {
             navigate('/');
             return;
         }
+    }, [authLoading, user, navigate]);
+
+    useEffect(() => {
+        if (!user) return;
 
         const loadUserVideos = async () => {
             try {
                 const response = await videoApi.getAll();
                 const allVideos = response.data || [];
                 
-                // IMPORTANT: Only show videos where creator matches current user
-                // This filters out default videos even if they have the same creatorId
+                // Only show videos where creator matches current user
                 const userVideosList = allVideos.filter(v => 
                     v.creator === user.username
                 );
@@ -43,6 +48,11 @@ function Profile() {
                     totalViews: totalViews,
                     totalLikes: totalLikes
                 });
+
+                // Calculate subscriber count
+                const subCount = calculateSubscriberCount(user.username);
+                setSubscriberCount(subCount);
+
             } catch (error) {
                 console.error('Error loading user videos:', error);
             }
@@ -50,7 +60,28 @@ function Profile() {
         };
 
         loadUserVideos();
-    }, [user, navigate]);
+    }, [user]);
+
+    // Calculate subscriber count from all users
+    const calculateSubscriberCount = (channelName) => {
+        let count = 0;
+        
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith('subscriptions_')) {
+                try {
+                    const subscriptions = JSON.parse(localStorage.getItem(key) || '[]');
+                    if (subscriptions.includes(channelName)) {
+                        count++;
+                    }
+                } catch (e) {
+                    // Skip invalid data
+                }
+            }
+        }
+        
+        return count;
+    };
 
     const handleDelete = async (videoId) => {
         if (!window.confirm('Are you sure you want to delete this video? This action cannot be undone.')) {
@@ -60,9 +91,7 @@ function Profile() {
         setDeleting(videoId);
         try {
             await videoApi.delete(videoId);
-            // Remove from list
             setUserVideos(prev => prev.filter(v => v.id !== videoId));
-            // Update stats
             setStats(prev => ({
                 ...prev,
                 totalVideos: prev.totalVideos - 1
@@ -79,6 +108,15 @@ function Profile() {
         logout();
         navigate('/');
     };
+
+    // ✅ Show loading while auth is loading
+    if (authLoading || loading) {
+        return (
+            <div className="profile-container">
+                <div className="loading-spinner">Loading profile...</div>
+            </div>
+        );
+    }
 
     if (!user) {
         return null;
@@ -97,6 +135,13 @@ function Profile() {
                     <div className="profile-info">
                         <h1>{user.username}</h1>
                         <p className="profile-email">{user.email}</p>
+                        
+                        {/* Subscriber Count */}
+                        <div className="profile-subscriber-count">
+                            <span className="subscriber-number">{subscriberCount}</span>
+                            <span className="subscriber-label">Subscribers</span>
+                        </div>
+
                         <div className="profile-stats">
                             <div className="stat-item">
                                 <span className="stat-number">{stats.totalVideos}</span>

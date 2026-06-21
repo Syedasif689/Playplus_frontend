@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { videoApi, userApi } from '../services/api';
+import { videoApi } from '../services/api';
 import defaultVideos from '../data/videos';
 import '../styles/Subscriptions.css';
 
@@ -20,16 +20,14 @@ function Subscriptions() {
         const loadSubscriptions = async () => {
             setLoading(true);
             try {
-                // Get user's subscriptions from database via API
-                // For now, we'll use localStorage as fallback
-                // TODO: Add API endpoint to get user's subscriptions
+                // Get subscriptions from localStorage
                 const subscriptions = JSON.parse(localStorage.getItem(`subscriptions_${user.id}`) || '[]');
                 
-                // Remove duplicates using Set
+                // Remove duplicates
                 const uniqueSubscriptions = [...new Set(subscriptions)];
                 setSubscribedChannels(uniqueSubscriptions);
                 
-                // Get all videos to gather channel info
+                // Get all videos
                 const response = await videoApi.getAll();
                 const allVideos = response.data || [];
                 const localVideos = JSON.parse(localStorage.getItem('videos') || '[]');
@@ -37,7 +35,7 @@ function Subscriptions() {
                 
                 // Build channel data from videos
                 const channelMap = {};
-                for (const channelName of uniqueSubscriptions) {
+                uniqueSubscriptions.forEach(channelName => {
                     // Find videos by this creator
                     const channelVideos = combinedVideos.filter(v => v.creator === channelName);
                     
@@ -48,17 +46,19 @@ function Subscriptions() {
                         return dateB - dateA;
                     })[0];
                     
-                    // Get channel ID
-                    const channelId = channelVideos[0]?.creatorId;
-                    
-                    // Get subscriber count from database
+                    // Count subscribers from localStorage
                     let subscriberCount = 0;
-                    if (channelId) {
-                        try {
-                            const statusResponse = await userApi.getSubscriptionStatus(channelId);
-                            subscriberCount = statusResponse.data.subscriberCount || 0;
-                        } catch (error) {
-                            console.error('Error getting subscriber count:', error);
+                    for (let i = 0; i < localStorage.length; i++) {
+                        const key = localStorage.key(i);
+                        if (key && key.startsWith('subscriptions_')) {
+                            try {
+                                const subs = JSON.parse(localStorage.getItem(key) || '[]');
+                                if (subs.includes(channelName)) {
+                                    subscriberCount++;
+                                }
+                            } catch (e) {
+                                // Skip invalid data
+                            }
                         }
                     }
                     
@@ -67,10 +67,9 @@ function Subscriptions() {
                         videoCount: channelVideos.length,
                         latestVideo: latestVideo,
                         thumbnail: latestVideo?.thumbnail || 'https://picsum.photos/seed/' + channelName + '/300/180',
-                        subscribers: subscriberCount,
-                        channelId: channelId
+                        subscribers: subscriberCount
                     };
-                }
+                });
                 
                 // Convert to array and sort by name
                 const channelArray = Object.values(channelMap).sort((a, b) => 
@@ -87,18 +86,8 @@ function Subscriptions() {
         loadSubscriptions();
     }, [user]);
 
-    const handleUnsubscribe = async (channelName, channelId) => {
+    const handleUnsubscribe = (channelName) => {
         if (!window.confirm(`Are you sure you want to unsubscribe from ${channelName}?`)) {
-            return;
-        }
-
-        try {
-            if (channelId) {
-                await userApi.unsubscribe(channelId);
-            }
-        } catch (error) {
-            console.error('Error unsubscribing:', error);
-            alert('Failed to unsubscribe. Please try again.');
             return;
         }
 
@@ -181,7 +170,7 @@ function Subscriptions() {
                                             onClick={(e) => {
                                                 e.preventDefault();
                                                 e.stopPropagation();
-                                                handleUnsubscribe(channel.name, channel.channelId);
+                                                handleUnsubscribe(channel.name);
                                             }}
                                         >
                                             Unsubscribe

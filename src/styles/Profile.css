@@ -57,6 +57,26 @@
     margin-bottom: 16px;
 }
 
+/* Subscriber Count Styles */
+.profile-subscriber-count {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 8px 0 12px 0;
+}
+
+.subscriber-number {
+    font-size: 24px;
+    font-weight: 700;
+    color: #f1f1f1;
+}
+
+.subscriber-label {
+    font-size: 14px;
+    color: #aaa;
+    font-weight: 400;
+}
+
 .profile-stats {
     display: flex;
     gap: 30px;
@@ -132,6 +152,7 @@
     background: #5cb8ff;
     transform: scale(1.02);
 }
+
 /* Video Actions - Edit & Delete */
 .video-actions {
     display: flex;
@@ -321,7 +342,9 @@
     font-size: 16px;
 }
 
-/* Responsive */
+/* ===== RESPONSIVE ===== */
+
+/* Tablet */
 @media (max-width: 768px) {
     .profile-banner-content {
         flex-direction: column;
@@ -347,8 +370,22 @@
         height: 80px;
         font-size: 32px;
     }
+    
+    /* Subscriber count responsive */
+    .subscriber-number {
+        font-size: 20px;
+    }
+    
+    .subscriber-label {
+        font-size: 12px;
+    }
+    
+    .profile-subscriber-count {
+        justify-content: center;
+    }
 }
 
+/* Mobile */
 @media (max-width: 480px) {
     .videos-grid {
         grid-template-columns: 1fr;
@@ -360,5 +397,40 @@
     
     .stat-number {
         font-size: 16px;
+    }
+    
+    .subscriber-number {
+        font-size: 18px;
+    }
+    
+    .subscriber-label {
+        font-size: 11px;
+    }
+    
+    .profile-info h1 {
+        font-size: 20px;
+    }
+    
+    .profile-banner {
+        padding: 24px 16px;
+    }
+    
+    .section-header {
+        flex-direction: column;
+        gap: 12px;
+        align-items: stretch;
+    }
+    
+    .upload-btn-small {
+        text-align: center;
+    }
+    
+    .video-actions {
+        flex-direction: column;
+    }
+    
+    .edit-btn,
+    .delete-btn {
+        padding: 8px 12px;
     }
 }

@@ -103,9 +103,10 @@ function Navbar() {
 
         <div className="nav-links">
           <Link to="/">Home</Link>
-          <Link to="/">Trending</Link>
-          <Link to="/">Subscriptions</Link>
-          <Link to="/upload">Upload</Link>
+           <Link to="/trending">Trending</Link>
+           {user && <Link to="/subscriptions">Subscriptions</Link>}          
+           <Link to="/upload">Upload</Link>
+          
         </div>
 
         <div className="nav-actions">
