@@ -58,5 +58,20 @@ export const commentApi = {
     likeComment: (commentId) => 
         API.post(`/comments/${commentId}/like`),
 };
+   // Channel API calls
+    export const channelApi = {
+    // Get channel information by username
+    getChannel: (username) => API.get(`/channels/${username}`),
+    
+    // Subscribe to a channel
+    subscribe: (username) => API.post(`/channels/${username}/subscribe`),
+    
+    // Unsubscribe from a channel
+    unsubscribe: (username) => API.delete(`/channels/${username}/subscribe`),
+    
+    // Check subscription status (optional, but useful)
+    getSubscriptionStatus: (username) => API.get(`/channels/${username}/subscribed`),
+    getUserSubscriptions: () => API.get('/user/subscriptions'),
+};
 
 export default API;

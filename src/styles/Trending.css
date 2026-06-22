@@ -63,6 +63,15 @@
 .trending-video:hover {
     background: #1a1a1a;
 }
+.trending-error {
+    background: rgba(255, 68, 68, 0.1);
+    border: 1px solid #ff4444;
+    color: #ff4444;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 14px;
+}
 
 .trending-number {
     font-size: 28px;

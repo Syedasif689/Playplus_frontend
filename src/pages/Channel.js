@@ -2,7 +2,7 @@ import { useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import VideoCard from "../components/VideoCard";
 import defaultVideos from "../data/videos";
-import { videoApi } from "../services/api";
+import { videoApi, channelApi } from "../services/api";
 import { useAuth } from '../contexts/AuthContext';
 import "../styles/Channel.css";
 
@@ -14,16 +14,38 @@ function Channel() {
   const [error, setError] = useState('');
   const [shareSuccess, setShareSuccess] = useState(false);
 
-  // ✅ Check if user is the channel owner
-  const isOwnChannel = user && user.username === creator;
+  // ✅ State for channel info from backend
+  const [channelInfo, setChannelInfo] = useState(null);
+  const [subscriberCount, setSubscriberCount] = useState(0);
+  const [subscribed, setSubscribed] = useState(false);
+  const [isOwnChannel, setIsOwnChannel] = useState(false);
+  const [loadingChannel, setLoadingChannel] = useState(true);
 
-  // ✅ Subscription state - only for non-owners
-  const [subscribed, setSubscribed] = useState(() => {
-    // If user is the owner, they are not subscribed
-    if (isOwnChannel) return false;
-    return localStorage.getItem(`user_sub_${creator}`) === "true";
-  });
+  // ✅ Load channel info from backend
+  useEffect(() => {
+    const loadChannelInfo = async () => {
+      setLoadingChannel(true);
+      try {
+        const response = await channelApi.getChannel(creator);
+        const data = response.data;
+        setChannelInfo(data);
+        setSubscriberCount(data.subscriberCount || 0);
+        setSubscribed(data.isSubscribed || false);
+        setIsOwnChannel(data.isOwnChannel || false);
+      } catch (error) {
+        console.error('Error loading channel info:', error);
+        setError('Failed to load channel information');
+      } finally {
+        setLoadingChannel(false);
+      }
+    };
 
+    if (creator) {
+      loadChannelInfo();
+    }
+  }, [creator]);
+
+  // ✅ Load creator videos (existing logic, but we can use channelInfo.videoCount)
   useEffect(() => {
     const loadCreatorVideos = async () => {
       setLoading(true);
@@ -80,9 +102,8 @@ function Channel() {
     }
   }, [creator]);
 
-  // ✅ Handle subscribe - prevent self-subscription
-  const handleSubscribe = () => {
-    // Don't allow self-subscription
+  // ✅ Handle subscribe - using API
+  const handleSubscribe = async () => {
     if (isOwnChannel) {
       alert('You cannot subscribe to your own channel');
       return;
@@ -93,18 +114,32 @@ function Channel() {
       return;
     }
 
-    const newState = !subscribed;
-    setSubscribed(newState);
-    localStorage.setItem(`user_sub_${creator}`, newState);
+    try {
+      let response;
+      if (subscribed) {
+        // Unsubscribe
+        response = await channelApi.unsubscribe(creator);
+      } else {
+        // Subscribe
+        response = await channelApi.subscribe(creator);
+      }
+      
+      // Update state with response
+      setSubscribed(response.data.subscribed);
+      setSubscriberCount(response.data.subscriberCount);
+      
+    } catch (error) {
+      console.error('Error toggling subscription:', error);
+      alert(error.response?.data?.error || 'Failed to update subscription');
+    }
   };
 
-  // ✅ Handle share - with multiple methods
+  // ✅ Handle share - same as before
   const handleShare = async () => {
     const url = window.location.href;
     const channelName = creator || 'Unknown Channel';
     const shareText = `Check out ${channelName}'s channel on Play+! 🎬\n\n${url}`;
 
-    // Try native share API first (mobile)
     if (navigator.share) {
       try {
         await navigator.share({
@@ -120,14 +155,11 @@ function Channel() {
       }
     }
 
-    // Fallback: Copy to clipboard
     try {
       await navigator.clipboard.writeText(shareText);
       setShareSuccess(true);
       setTimeout(() => setShareSuccess(false), 3000);
-      alert('✅ Channel link copied to clipboard!');
     } catch (error) {
-      // Last resort: prompt
       const copied = window.prompt('Copy this link to share:', url);
       if (copied) {
         setShareSuccess(true);
@@ -136,7 +168,8 @@ function Channel() {
     }
   };
 
-  if (loading) {
+  // ✅ Combined loading state
+  if (loading || loadingChannel) {
     return (
       <div className="channel-container">
         <div className="channel-loading">
@@ -178,6 +211,9 @@ function Channel() {
                 disabled={isButtonDisabled()}
               >
                 {getButtonText()}
+                {!isOwnChannel && subscriberCount > 0 && (
+                  <span className="sub-count">• {subscriberCount}</span>
+                )}
               </button>
               
               <button
@@ -191,8 +227,7 @@ function Channel() {
           </div>
 
           <p>
-            {creatorVideos.length} Videos •{' '}
-            {subscribed && !isOwnChannel ? '1' : '0'} Subscribers
+            {creatorVideos.length} Videos • {subscriberCount} Subscribers
           </p>
 
           {shareSuccess && (

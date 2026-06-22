@@ -48,7 +48,61 @@ body {
 .show-more-btn:hover {
   color: #3ea6ff;
 }
+/* Channel avatar row */
+.channel-avatar-row {
+  display: flex;
+  align-items: center;
+  margin: 12px 0 8px 0;
+}
 
+.channel-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  color: #f1f1f1;
+  font-size: 15px;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.channel-link:hover {
+  color: #3ea6ff;
+}
+
+.channel-avatar-small {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #3ea6ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.channel-avatar-small img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar-initial {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 600;
+  color: #0f0f0f;
+}
+
+.channel-name {
+  font-weight: 500;
+  font-size: 15px;
+}
 /* MAIN LAYOUT (YouTube style) */
 .watch-layout {
   display: flex;
@@ -75,7 +129,7 @@ body {
   align-self: flex-start;
 }
 
-/* VIDEO PLAYER */
+/* VIDEO PLAYER (native controls - kept for fallback) */
 .video-player {
   width: 100%;
   aspect-ratio: 16 / 9;
@@ -85,6 +139,164 @@ body {
   object-fit: cover;
   max-width: 990px;
 }
+
+/* =================== CUSTOM VIDEO PLAYER =================== */
+.video-player-container {
+  width: 100%;
+  background: #000;
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+}
+
+.video-wrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #000;
+  cursor: pointer;
+}
+
+.video-element {
+  width: 100%;
+  height: 100%;
+  display: block;
+  background: #000;
+}
+
+/* Play Overlay - centered play button */
+.play-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.3);
+  transition: background 0.2s;
+  pointer-events: none;
+}
+
+.play-overlay:hover {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.play-button {
+  font-size: 72px;
+  color: rgba(255, 255, 255, 0.8);
+  text-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+  transition: transform 0.2s;
+}
+
+.play-overlay:hover .play-button {
+  transform: scale(1.1);
+}
+
+/* Custom Controls Bar */
+.video-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 16px;
+  background: #1a1a1a;
+  border-top: 1px solid #333;
+  flex-wrap: wrap;
+}
+
+.control-btn {
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.control-btn:hover {
+  background: #333;
+}
+
+/* Progress Bar */
+.progress-container {
+  flex: 1;
+  height: 6px;
+  background: #444;
+  border-radius: 3px;
+  cursor: pointer;
+  position: relative;
+  min-width: 80px;
+}
+
+.progress-bar {
+  height: 100%;
+  background: #3ea6ff;
+  border-radius: 3px;
+  width: 0%;
+  transition: width 0.1s linear;
+}
+
+.progress-thumb {
+  position: absolute;
+  top: -4px;
+  width: 14px;
+  height: 14px;
+  background: #3ea6ff;
+  border-radius: 50%;
+  transform: translateX(-50%);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.progress-container:hover .progress-thumb {
+  opacity: 1;
+}
+
+/* Time Display */
+.time-display {
+  color: #aaa;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* Volume Control */
+.volume-control {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.volume-slider {
+  width: 60px;
+  height: 4px;
+  -webkit-appearance: none;
+  background: #444;
+  border-radius: 2px;
+  outline: none;
+}
+
+.volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 12px;
+  height: 12px;
+  background: #3ea6ff;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.volume-slider::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  background: #3ea6ff;
+  border-radius: 50%;
+  cursor: pointer;
+  border: none;
+}
+/* ========== END CUSTOM VIDEO PLAYER ========== */
 
 /* VIDEO TITLE */
 .main-content h2 {

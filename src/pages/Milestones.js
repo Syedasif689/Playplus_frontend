@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { getAchievedMilestones, getShownMilestones } from '../services/milestoneService';
+import { channelApi } from '../services/api';
 import '../styles/Milestones.css';
 
 function Milestones() {
@@ -12,6 +13,7 @@ function Milestones() {
     const [shownMilestones, setShownMilestones] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedMilestone, setSelectedMilestone] = useState(null);
+    const [error, setError] = useState('');
 
     // All milestones with detailed info
     const allMilestones = [
@@ -113,31 +115,32 @@ function Milestones() {
             return;
         }
 
-        const loadMilestones = () => {
-            // Calculate subscriber count
-            let count = 0;
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                if (key && key.startsWith('subscriptions_')) {
-                    try {
-                        const subscriptions = JSON.parse(localStorage.getItem(key) || '[]');
-                        if (subscriptions.includes(user.username)) {
-                            count++;
-                        }
-                    } catch (e) {}
-                }
+        const loadMilestones = async () => {
+            setLoading(true);
+            setError('');
+            try {
+                // ✅ Fetch real subscriber count from backend
+                const response = await channelApi.getChannel(user.username);
+                const count = response.data.subscriberCount || 0;
+                setSubscriberCount(count);
+
+                // Get achieved milestones based on real count
+                const achieved = getAchievedMilestones(count);
+                setAchievedMilestones(achieved);
+
+                // Get shown milestones (from localStorage – still valid for tracking)
+                const shown = getShownMilestones(user.id);
+                setShownMilestones(shown);
+
+            } catch (err) {
+                console.error('❌ Failed to fetch channel info for milestones:', err);
+                setError('Could not load your subscriber count. Please try again.');
+                // Fallback: show 0 subscribers
+                setSubscriberCount(0);
+                setAchievedMilestones([]);
+            } finally {
+                setLoading(false);
             }
-            setSubscriberCount(count);
-
-            // Get achieved milestones
-            const achieved = getAchievedMilestones(count);
-            setAchievedMilestones(achieved);
-
-            // Get shown milestones
-            const shown = getShownMilestones(user.id);
-            setShownMilestones(shown);
-
-            setLoading(false);
         };
 
         loadMilestones();
@@ -199,6 +202,8 @@ function Milestones() {
                 <h1>🏆 Milestones</h1>
                 <p>Track your achievements and celebrate your journey</p>
             </div>
+
+            {error && <div className="milestones-error">{error}</div>}
 
             {/* Stats Summary */}
             <div className="milestones-stats">

@@ -4,7 +4,7 @@ import defaultVideos from "../data/videos";
 import "../styles/watch.css";
 import { videoApi, commentApi } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
-
+import VideoPlayer from '../components/VideoPlayer';
 function Watch() {
   const { user } = useAuth();
   const { id } = useParams();
@@ -561,11 +561,9 @@ function Watch() {
       {/* LEFT SIDE - MAIN CONTENT */}
       <div className="main-content">
         {/* Sticky Video Player Container */}
-        <div className="sticky-video-container">
-          <div className="video-wrapper">
-            <video className="video-player" controls src={video.videoUrl} />
-          </div>
-        </div>
+       <div className="sticky-video-container">
+       <VideoPlayer src={video.videoUrl} title={video.title} />
+      </div>
 
         {/* Scrollable Content */}
         <div className="scrollable-content">

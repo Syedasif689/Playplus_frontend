@@ -10,7 +10,7 @@ import Profile from "./pages/Profile";
 import Subscriptions from "./pages/Subscriptions";
 import Trending from "./pages/Trending";
 import Milestones from './pages/Milestones';
-
+import EditVideo from './pages/EditVideo'; 
 function App() {
   return (
     <AuthProvider>
@@ -25,6 +25,7 @@ function App() {
           <Route path="/subscriptions" element={<Subscriptions />} />
           <Route path="/trending" element={<Trending />} />
           <Route path="/milestones" element={<Milestones />} />
+          <Route path="/edit/:videoId" element={<EditVideo />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

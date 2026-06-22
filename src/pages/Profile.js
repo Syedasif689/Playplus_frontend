@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
-import { videoApi } from '../services/api';
+import { videoApi, channelApi } from '../services/api';
 import { checkMilestone, markMilestoneShown, hasShownMilestone } from '../services/milestoneService';
 import MilestoneNotification from '../components/MilestoneNotification';
 import MilestoneCelebration from '../components/MilestoneCelebration';
@@ -65,23 +65,6 @@ function Profile() {
         }
     }, [user]);
 
-    // Calculate subscriber count
-    const calculateSubscriberCount = useCallback((channelName) => {
-        let count = 0;
-        for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            if (key && key.startsWith('subscriptions_')) {
-                try {
-                    const subscriptions = JSON.parse(localStorage.getItem(key) || '[]');
-                    if (subscriptions.includes(channelName)) {
-                        count++;
-                    }
-                } catch (e) {}
-            }
-        }
-        return count;
-    }, []);
-
     // Check for milestone
     const checkForMilestone = useCallback((currentCount, prevCount) => {
         const milestone = checkMilestone(currentCount, prevCount);
@@ -103,6 +86,7 @@ function Profile() {
         }
     }, [user]);
 
+    // Redirect if not logged in
     useEffect(() => {
         if (!authLoading && !user) {
             navigate('/');
@@ -110,11 +94,18 @@ function Profile() {
         }
     }, [authLoading, user, navigate]);
 
+    // Load user videos and channel info
     useEffect(() => {
         if (!user) return;
 
-        const loadUserVideos = async () => {
+        const loadUserData = async () => {
             try {
+                // 1. Get user's channel info to get subscriber count
+                const channelResponse = await channelApi.getChannel(user.username);
+                const channelData = channelResponse.data;
+                setSubscriberCount(channelData.subscriberCount || 0);
+
+                // 2. Get user's videos
                 const response = await videoApi.getAll();
                 const allVideos = response.data || [];
                 const userVideosList = allVideos.filter(v => v.creator === user.username);
@@ -130,21 +121,28 @@ function Profile() {
                     totalLikes: totalLikes
                 });
 
-                const prevCount = subscriberCount;
-                const subCount = calculateSubscriberCount(user.username);
-                setSubscriberCount(subCount);
-
-                checkForMilestone(subCount, prevCount);
+                // Check milestone (using current count - we don't have previous count from backend easily, so we'll just check now)
+                // We could store previous count in localStorage, but for simplicity we'll just show if milestone is reached.
+                // However we have the milestone logic using previous count to avoid repeated notifications.
+                // We'll call checkForMilestone with prevCount = 0 (or stored value) and current = channelData.subscriberCount.
+                // But to avoid complexity, we can just store the last notified count in localStorage.
+                const lastNotified = localStorage.getItem(`lastSubCount_${user.id}`);
+                const prevCount = lastNotified ? parseInt(lastNotified) : 0;
+                if (channelData.subscriberCount > prevCount) {
+                    checkForMilestone(channelData.subscriberCount, prevCount);
+                }
+                localStorage.setItem(`lastSubCount_${user.id}`, channelData.subscriberCount);
 
             } catch (error) {
-                console.error('Error loading user videos:', error);
+                console.error('Error loading user data:', error);
+                // Fallback to old localStorage method for subscriber count (if needed)
+                // But we'll just show 0
             }
             setLoading(false);
         };
 
-        loadUserVideos();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [user, calculateSubscriberCount, checkForMilestone]);
+        loadUserData();
+    }, [user, checkForMilestone]);
 
     // Profile Edit Functions
     const handleStartEdit = () => {
@@ -185,7 +183,6 @@ function Profile() {
 
     const handleAddCustomLink = () => {
         if (newLink.title.trim() && newLink.url.trim()) {
-            // Add http:// if not present
             let url = newLink.url;
             if (!url.startsWith('http://') && !url.startsWith('https://')) {
                 url = 'https://' + url;
