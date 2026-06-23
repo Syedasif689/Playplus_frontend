@@ -22,7 +22,7 @@ API.interceptors.request.use(
 // Video API calls
 export const videoApi = {
     getAll: () => API.get('/videos/all'),
-    getVideo: (videoId) => API.get(`/videos/${videoId}`),
+    getVideo: (videoId) => API.get(`/videos/video/${videoId}`),  // ✅ FIXED
     getByCreator: (creatorId) => API.get(`/videos/creator/${creatorId}`),
     getReaction: (videoId) => API.get(`/videos/${videoId}/reaction`),
     like: (videoId) => API.post(`/videos/${videoId}/like`),
@@ -30,7 +30,6 @@ export const videoApi = {
     upload: (videoData) => API.post('/videos/upload', videoData),
     update: (videoId, videoData) => API.put(`/videos/${videoId}`, videoData),
     delete: (videoId) => API.delete(`/videos/${videoId}`),
-    // ✅ ADDED: Track video view
     trackView: (videoId) => {
         console.log('📤 Sending view tracking request for video:', videoId);
         return API.post(`/videos/${videoId}/view`);
@@ -39,39 +38,31 @@ export const videoApi = {
 
 // Comment API calls
 export const commentApi = {
-    // Get comments for a video
     getComments: (videoId) => API.get(`/comments/video/${videoId}`),
-    
-    // Add a comment
     addComment: (videoId, text, parentCommentId = null) => 
         API.post(`/comments/video/${videoId}`, { text, parentCommentId }),
-    
-    // Update a comment
     updateComment: (commentId, text) => 
         API.put(`/comments/${commentId}`, { text }),
-    
-    // Delete a comment
     deleteComment: (commentId) => 
         API.delete(`/comments/${commentId}`),
-    
-    // Like/Unlike a comment
     likeComment: (commentId) => 
         API.post(`/comments/${commentId}/like`),
 };
-   // Channel API calls
-    export const channelApi = {
-    // Get channel information by username
+
+// Channel API calls
+export const channelApi = {
     getChannel: (username) => API.get(`/channels/${username}`),
-    
-    // Subscribe to a channel
     subscribe: (username) => API.post(`/channels/${username}/subscribe`),
-    
-    // Unsubscribe from a channel
     unsubscribe: (username) => API.delete(`/channels/${username}/subscribe`),
-    
-    // Check subscription status (optional, but useful)
     getSubscriptionStatus: (username) => API.get(`/channels/${username}/subscribed`),
     getUserSubscriptions: () => API.get('/user/subscriptions'),
+};
+
+// User API calls (History & Liked)
+export const userApi = {
+    getHistory: () => API.get('/user/history'),
+    clearHistory: () => API.delete('/user/history'),
+    getLikedVideos: () => API.get('/user/liked-videos'),
 };
 
 export default API;

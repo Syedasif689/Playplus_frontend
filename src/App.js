@@ -11,6 +11,9 @@ import Subscriptions from "./pages/Subscriptions";
 import Trending from "./pages/Trending";
 import Milestones from './pages/Milestones';
 import EditVideo from './pages/EditVideo'; 
+import History from './pages/History';
+import LikedVideos from './pages/LikedVideos';
+
 function App() {
   return (
     <AuthProvider>
@@ -26,6 +29,10 @@ function App() {
           <Route path="/trending" element={<Trending />} />
           <Route path="/milestones" element={<Milestones />} />
           <Route path="/edit/:videoId" element={<EditVideo />} />
+          <Route path="/history" element={<History />} />
+          <Route path="/liked" element={<LikedVideos />} />
+          {/* ✅ 404 Not Found – catch any unknown routes */}
+          <Route path="*" element={<div style={{ color: '#f1f1f1', textAlign: 'center', padding: '60px 20px' }}><h1>404 - Page Not Found</h1><p>The page you're looking for doesn't exist.</p></div>} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

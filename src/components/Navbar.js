@@ -15,26 +15,23 @@ function Navbar() {
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showSignupModal, setShowSignupModal] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
   const searchInputRef = useRef(null);
   const searchContainerRef = useRef(null);
   const { user, logout } = useAuth();
 
-  // Load all videos from database and localStorage
+  const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
+  const closeSidebar = () => setSidebarOpen(false);
+
+  // Load videos (unchanged)
   useEffect(() => {
     const loadVideos = async () => {
       try {
-        // Get videos from database
         const response = await videoApi.getAll();
         const dbVideos = response.data || [];
-        
-        // Get videos from localStorage
         const localVideos = JSON.parse(localStorage.getItem("videos") || "[]");
-        
-        // Combine all videos
         const allVideosCombined = [...dbVideos, ...localVideos, ...defaultVideos];
-        
-        // Remove duplicates by id
         const uniqueVideos = [];
         const seenIds = new Set();
         allVideosCombined.forEach(video => {
@@ -43,20 +40,17 @@ function Navbar() {
             uniqueVideos.push(video);
           }
         });
-        
         setAllVideos(uniqueVideos);
       } catch (error) {
         console.error('Error loading videos for search:', error);
-        // Fallback to localStorage and default videos
         const localVideos = JSON.parse(localStorage.getItem("videos") || "[]");
         setAllVideos([...localVideos, ...defaultVideos]);
       }
     };
-    
     loadVideos();
   }, []);
 
-  // Search videos based on input
+  // Search logic (unchanged)
   useEffect(() => {
     if (searchText.trim() !== "") {
       const results = allVideos.filter(video => {
@@ -66,8 +60,7 @@ function Navbar() {
           video.creator?.toLowerCase().includes(searchLower) ||
           video.description?.toLowerCase().includes(searchLower)
         );
-      }).slice(0, 10); // Show top 10 results
-      
+      }).slice(0, 10);
       setSearchResults(results);
       setShowSearchResults(true);
       setSelectedIndex(-1);
@@ -77,7 +70,7 @@ function Navbar() {
     }
   }, [searchText, allVideos]);
 
-  // Close search results when clicking outside
+  // Close search on outside click
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (searchContainerRef.current && !searchContainerRef.current.contains(event.target)) {
@@ -85,22 +78,33 @@ function Navbar() {
         setSearchText("");
       }
     };
-
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Close sidebar on outside click
+  useEffect(() => {
+    const handleOutsideClick = (e) => {
+      if (sidebarOpen && !e.target.closest('.sidebar') && !e.target.closest('.hamburger')) {
+        closeSidebar();
+      }
+    };
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => document.removeEventListener('mousedown', handleOutsideClick);
+  }, [sidebarOpen]);
+
+  // Handlers (video selection, search, etc.)
   const handleVideoSelect = (videoId) => {
     navigate(`/watch/${videoId}`);
     setShowSearchResults(false);
     setSearchText("");
     setSearchResults([]);
+    closeSidebar();
   };
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     if (searchText.trim() !== "") {
-      // If there are results, show them in a search page
       navigate(`/search?q=${encodeURIComponent(searchText.trim())}`);
       setShowSearchResults(false);
       setSearchText("");
@@ -117,9 +121,7 @@ function Navbar() {
   const handleKeyDown = (e) => {
     if (e.key === "ArrowDown") {
       e.preventDefault();
-      setSelectedIndex(prev => 
-        prev < searchResults.length - 1 ? prev + 1 : prev
-      );
+      setSelectedIndex(prev => prev < searchResults.length - 1 ? prev + 1 : prev);
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
       setSelectedIndex(prev => prev > 0 ? prev - 1 : -1);
@@ -138,28 +140,29 @@ function Navbar() {
     }
   };
 
+  // ✅ Updated logout with confirmation
   const handleLogout = () => {
-    logout();
-    navigate("/");
+    if (window.confirm("Are you sure you want to log out?")) {
+      logout();
+      navigate("/");
+      closeSidebar();
+    }
   };
 
   return (
     <>
+      {/* ===== TOP NAVBAR ===== */}
       <nav className="navbar">
-        <div className="logo" onClick={() => navigate("/")} style={{ cursor: "pointer" }}>
-          <h2>▶ Play+</h2>
+        <div className="nav-left">
+          <button className="hamburger" onClick={toggleSidebar} aria-label="Toggle navigation">
+            <span></span><span></span><span></span>
+          </button>
+          <div className="logo" onClick={() => { navigate("/"); closeSidebar(); }}>
+            <h2>▶ Play+</h2>
+          </div>
         </div>
 
-        <div className="nav-links">
-          <Link to="/">Home</Link>
-          <Link to="/trending">Trending</Link>
-          {user && <Link to="/subscriptions">Subscriptions</Link>}
-          <Link to="/upload">Upload</Link>
-          {user && <Link to="/milestones">🏆 Milestones</Link>}
-        </div>
-
-        <div className="nav-actions">
-          {/* Search Input */}
+        <div className="nav-center">
           <div className="search-container" ref={searchContainerRef}>
             <form onSubmit={handleSearchSubmit} className="search-form">
               <div className="search-input-container">
@@ -174,25 +177,17 @@ function Navbar() {
                   onFocus={() => searchText.trim() !== "" && setShowSearchResults(true)}
                 />
                 {searchText ? (
-                  <button type="button" className="clear-search-btn" onClick={handleClearSearch}>
-                    ✕
-                  </button>
+                  <button type="button" className="clear-search-btn" onClick={handleClearSearch}>✕</button>
                 ) : (
-                  <button type="submit" className="search-icon-btn">
-                    🔍
-                  </button>
+                  <button type="submit" className="search-icon-btn">🔍</button>
                 )}
               </div>
             </form>
-
-            {/* Search Results Dropdown */}
             {showSearchResults && (
               <div className="search-results-dropdown">
                 {searchResults.length > 0 ? (
                   <>
-                    <div className="search-results-header">
-                      <span>{searchResults.length} results found</span>
-                    </div>
+                    <div className="search-results-header"><span>{searchResults.length} results found</span></div>
                     {searchResults.map((video, index) => (
                       <div
                         key={video.id}
@@ -207,17 +202,13 @@ function Navbar() {
                           <div className="result-creator">{video.creator || 'Unknown'}</div>
                           <div className="result-meta">
                             <span>{video.views || 0} views</span>
-                            {video.uploadedAt && (
-                              <span>• {new Date(video.uploadedAt).toLocaleDateString()}</span>
-                            )}
+                            {video.uploadedAt && <span>• {new Date(video.uploadedAt).toLocaleDateString()}</span>}
                           </div>
                         </div>
                       </div>
                     ))}
                     <div className="search-results-footer">
-                      <button onClick={handleSearchSubmit} className="search-all-btn">
-                        See all results for "{searchText}"
-                      </button>
+                      <button onClick={handleSearchSubmit} className="search-all-btn">See all results for "{searchText}"</button>
                     </div>
                   </>
                 ) : (
@@ -229,45 +220,59 @@ function Navbar() {
               </div>
             )}
           </div>
+        </div>
 
-          {/* Authentication Buttons */}
+        <div className="nav-right">
           {user ? (
-            <div className="user-menu">
-              <Link to="/profile" className="profile-link">
-                <span className="profile-avatar-small">
-                  {user.username?.charAt(0).toUpperCase() || 'U'}
-                </span>
-                <span className="username">{user.username}</span>
-              </Link>
-              <button className="logout-btn" onClick={handleLogout}>
-                Logout
-              </button>
-            </div>
+            <Link to="/profile" className="profile-link" onClick={closeSidebar}>
+              <span className="profile-avatar-small">
+                {user.username?.charAt(0).toUpperCase() || 'U'}
+              </span>
+              <span className="username">{user.username}</span>
+            </Link>
           ) : (
-            <button className="login-btn" onClick={() => setShowLoginModal(true)}>
-              Login
-            </button>
+            <button className="login-btn" onClick={() => setShowLoginModal(true)}>Login</button>
           )}
         </div>
       </nav>
 
-      {/* Auth Modals */}
-      <LoginModal 
-        isOpen={showLoginModal} 
+      {/* ===== SIDEBAR OVERLAY ===== */}
+      <div className={`sidebar-overlay ${sidebarOpen ? 'active' : ''}`} onClick={closeSidebar}></div>
+
+      {/* ===== SIDEBAR ===== */}
+      <div className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
+        <div className="sidebar-header">
+          <h2>▶ Play+</h2>
+          <button className="sidebar-close" onClick={closeSidebar}>✕</button>
+        </div>
+        <ul className="sidebar-nav">
+          <li><Link to="/" onClick={closeSidebar}>🏠 Home</Link></li>
+          <li><Link to="/trending" onClick={closeSidebar}>🔥 Trending</Link></li>
+          {user && <li><Link to="/subscriptions" onClick={closeSidebar}>📺 Subscriptions</Link></li>}
+          <li><Link to="/upload" onClick={closeSidebar}>📤 Upload</Link></li>
+          {user && <li><Link to="/milestones" onClick={closeSidebar}>🏆 Milestones</Link></li>}
+          {user && <li><Link to="/history" onClick={closeSidebar}>📜 History</Link></li>}
+          {user && <li><Link to="/liked" onClick={closeSidebar}>❤️ Liked Videos</Link></li>}
+        </ul>
+        <div className="sidebar-footer">
+          {user ? (
+            <button className="sidebar-logout" onClick={handleLogout}>🚪 Logout</button>
+          ) : (
+            <button className="sidebar-login" onClick={() => { setShowLoginModal(true); closeSidebar(); }}>🔑 Login</button>
+          )}
+        </div>
+      </div>
+
+      {/* ===== AUTH MODALS ===== */}
+      <LoginModal
+        isOpen={showLoginModal}
         onClose={() => setShowLoginModal(false)}
-        onSwitchToSignup={() => {
-          setShowLoginModal(false);
-          setShowSignupModal(true);
-        }}
+        onSwitchToSignup={() => { setShowLoginModal(false); setShowSignupModal(true); }}
       />
-      
-      <SignupModal 
-        isOpen={showSignupModal} 
+      <SignupModal
+        isOpen={showSignupModal}
         onClose={() => setShowSignupModal(false)}
-        onSwitchToLogin={() => {
-          setShowSignupModal(false);
-          setShowLoginModal(true);
-        }}
+        onSwitchToLogin={() => { setShowSignupModal(false); setShowLoginModal(true); }}
       />
     </>
   );
