@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import '../styles/VideoPlayer.css';
 
 function VideoPlayer({ src, title }) {
+    // ✅ Hooks are always called (no early return)
     const videoRef = useRef(null);
     const controlsTimeoutRef = useRef(null);
     const [isPlaying, setIsPlaying] = useState(false);
@@ -74,13 +75,16 @@ function VideoPlayer({ src, title }) {
         if (videoRef.current) {
             const current = videoRef.current.currentTime;
             const total = videoRef.current.duration;
-            setProgress((current / total) * 100);
-            setDuration(total);
+            if (total) {
+                setProgress((current / total) * 100);
+                setDuration(total);
+            }
         }
     };
 
     // Seek
     const handleSeek = (e) => {
+        if (!videoRef.current) return;
         const rect = e.currentTarget.getBoundingClientRect();
         const x = (e.clientX - rect.left) / rect.width;
         const seekTime = x * videoRef.current.duration;
@@ -158,6 +162,18 @@ function VideoPlayer({ src, title }) {
         };
     }, []);
 
+    // ----- RENDER SECTION -----
+    // Validate src – if missing, show fallback UI
+    const hasValidSrc = typeof src === 'string' && src.trim() !== '';
+
+    if (!hasValidSrc) {
+        return (
+            <div className="video-player-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#000', aspectRatio: '16/9' }}>
+                <p style={{ color: '#888', fontSize: '18px' }}>🎬 No video source available</p>
+            </div>
+        );
+    }
+
     return (
         <div 
             className="video-player-container"
@@ -180,7 +196,6 @@ function VideoPlayer({ src, title }) {
                     onTimeUpdate={handleTimeUpdate}
                     onLoadedMetadata={handleTimeUpdate}
                 />
-                {/* Play overlay - only show when paused */}
                 {!isPlaying && (
                     <div className="play-overlay">
                         <div className="play-button">▶</div>
@@ -188,7 +203,6 @@ function VideoPlayer({ src, title }) {
                 )}
             </div>
 
-            {/* Custom Controls with fade */}
             <div 
                 className={`video-controls ${controlsVisible ? 'visible' : 'hidden'}`}
                 onClick={(e) => e.stopPropagation()}
@@ -201,7 +215,6 @@ function VideoPlayer({ src, title }) {
 
                 <div className="progress-container" onClick={handleSeek}>
                     <div className="progress-bar" style={{ width: `${progress}%` }} />
-                    
                 </div>
 
                 <span className="time-display">

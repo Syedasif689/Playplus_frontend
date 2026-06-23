@@ -43,6 +43,50 @@
     justify-content: center;
 }
 
+/* Upload.css */
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    margin: 8px 0;
+    background: #1a1a1a;
+    border-radius: 8px;
+    border: 1px solid #2a2a2a;
+    transition: border-color 0.2s ease;
+}
+
+.checkbox-group:hover {
+    border-color: #3a3a3a;
+}
+
+.checkbox-group input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: #3ea6ff;
+    cursor: pointer;
+    flex-shrink: 0;
+    margin: 0;
+}
+
+.checkbox-group label {
+    color: #f1f1f1;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+}
+
+.checkbox-description {
+    color: #888;
+    font-size: 12px;
+    font-weight: 400;
+}
+
 /* ---------- CARD ---------- */
 .upload-card {
     background: var(--bg-secondary);

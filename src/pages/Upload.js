@@ -11,13 +11,17 @@ const CLOUDINARY_UPLOAD_PRESET = 'playplus_uploads';   // <-- CHANGE THIS
 function Upload() {
     const { user } = useAuth();
     const navigate = useNavigate();
+
+    // ✅ Single state declaration with allowDownload
     const [formData, setFormData] = useState({
         title: '',
         creator: '',
         description: '',
         thumbnail: '',
-        videoUrl: ''
+        videoUrl: '',
+        allowDownload: false
     });
+
     const [thumbnailPreview, setThumbnailPreview] = useState(null);
     const [videoPreview, setVideoPreview] = useState(null);
     const [videoFile, setVideoFile] = useState(null);
@@ -39,10 +43,12 @@ function Upload() {
         }
     }, [user, navigate]);
 
+    // ✅ Single handleChange – handles checkboxes too
     const handleChange = (e) => {
+        const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
         setFormData({
             ...formData,
-            [e.target.name]: e.target.value
+            [e.target.name]: value
         });
     };
 
@@ -143,19 +149,19 @@ function Upload() {
                 thumbnailUrl = `https://picsum.photos/seed/${randomId}/300/180`;
             }
 
-            // 4. Save video data to database
+            // 4. Save video data to database – include allowDownload
             const videoData = {
                 title: formData.title.trim(),
                 creator: formData.creator.trim(),
                 description: formData.description.trim(),
                 videoUrl: videoUrl,
                 thumbnail: thumbnailUrl,
-                creatorId: user.id
+                creatorId: user.id,
+                allowDownload: formData.allowDownload
             };
 
             console.log('Saving to database:', videoData);
 
-            // Save to database and get the saved video
             const savedVideo = await videoApi.upload(videoData);
             console.log('Saved video:', savedVideo.data);
             
@@ -168,7 +174,8 @@ function Upload() {
                 creator: user.username || '',
                 description: '',
                 thumbnail: '',
-                videoUrl: ''
+                videoUrl: '',
+                allowDownload: false
             });
             setThumbnailPreview(null);
             setVideoPreview(null);
@@ -269,6 +276,25 @@ function Upload() {
                         )}
                     </div>
 
+                    {/* ✅ Allow Download Checkbox – properly placed */}
+                    <div className="form-group">
+                        <div className="checkbox-group">
+                            <input
+                                type="checkbox"
+                                name="allowDownload"
+                                id="allowDownload"
+                                checked={formData.allowDownload || false}
+                                onChange={handleChange}
+                            />
+                            <label htmlFor="allowDownload">
+                                Allow users to download this video
+                                <span className="checkbox-description">
+                                    (Users can download the video file)
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+
                     {uploadProgress > 0 && uploadProgress < 100 && (
                         <div className="progress-container">
                             <div className="progress-bar" style={{ width: `${uploadProgress}%` }}>
@@ -281,7 +307,7 @@ function Upload() {
                     {success && <div className="success-message">{success}</div>}
 
                     <button type="submit" disabled={loading}>
-                        {loading ? `Uploading... ${uploadProgress}%` : ' Upload '}
+                        {loading ? `Uploading... ${uploadProgress}%` : '📤 Upload'}
                     </button>
                 </form>
             </div>

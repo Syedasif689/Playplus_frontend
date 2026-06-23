@@ -9,3 +9,10 @@ body{
     background:#0f0f0f;
     color:white;
 }
+body {
+    user-select: none;
+}
+
+input, textarea, [contenteditable="true"] {
+    user-select: text;
+}

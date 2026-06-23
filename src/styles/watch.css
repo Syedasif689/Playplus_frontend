@@ -44,7 +44,35 @@ body {
   padding: 0;
   transition: color 0.2s ease;
 }
+.actions {
+  display: flex;
+  align-items: center;    /* vertical alignment */
+  gap: 12px;
+  flex-wrap: wrap;
+}
 
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 40px;           /* same height for all */
+  padding: 0 16px;
+  background: #272727;
+  border: none;
+  border-radius: 40px;
+  color: #f1f1f1;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;  /* for <a> tags */
+}
+
+.action-btn:hover {
+  background: #3a3a3a;
+  transform: scale(1.02);
+}
 .show-more-btn:hover {
   color: #3ea6ff;
 }

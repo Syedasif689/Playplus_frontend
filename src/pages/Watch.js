@@ -4,7 +4,8 @@ import defaultVideos from "../data/videos";
 import "../styles/watch.css";
 import { videoApi, commentApi } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
-import VideoPlayer from '../components/VideoPlayer';
+import VideoPlayer from '../components/VideoPlayer'; 
+
 function Watch() {
   const { user } = useAuth();
   const { id } = useParams();
@@ -45,7 +46,22 @@ function Watch() {
   // Comments State
   const [comments, setComments] = useState([]);
   const [commentsLoading, setCommentsLoading] = useState(true);
-
+  // Helper to generate download URL for Cloudinary videos
+const getDownloadUrl = (url) => {
+  if (!url) return url;
+  // If it's a Cloudinary URL, add fl_attachment to force download
+  if (url.includes('cloudinary.com')) {
+    // Insert /fl_attachment/ before the upload path
+    // Example: https://res.cloudinary.com/duvjw7dti/video/upload/v12345/video.mp4
+    // becomes: https://res.cloudinary.com/duvjw7dti/video/upload/fl_attachment/v12345/video.mp4
+    const parts = url.split('/upload/');
+    if (parts.length === 2) {
+      return parts[0] + '/upload/fl_attachment/' + parts[1];
+    }
+  }
+  // For other URLs, just return the original
+  return url;
+};
   // Load video from database or fallback to local
   useEffect(() => {
     const loadVideo = async () => {
@@ -592,25 +608,37 @@ function Watch() {
           </div>
 
           <div className="actions">
-            <button 
-              onClick={() => handleVideoReaction("like")}
-              className={`action-btn ${reaction === "like" ? "active" : ""}`}
-            >
-              👍 {likes}
-            </button>
+  <button 
+    onClick={() => handleVideoReaction("like")}
+    className={`action-btn ${reaction === "like" ? "active" : ""}`}
+  >
+    👍 {likes}
+  </button>
 
-            <button 
-              onClick={() => handleVideoReaction("dislike")}
-              className={`action-btn ${reaction === "dislike" ? "active" : ""}`}
-            >
-              👎 {dislikes}
-            </button>
+  <button 
+    onClick={() => handleVideoReaction("dislike")}
+    className={`action-btn ${reaction === "dislike" ? "active" : ""}`}
+  >
+    👎 {dislikes}
+  </button>
 
-            {/* Share Button - No count */}
-            <button onClick={handleShare} className="action-btn">
-              🔗 Share
-            </button>
-          </div>
+  <button onClick={handleShare} className="action-btn">
+    🔗 Share
+  </button>
+
+  {/* ✅ Download button – only shows if allowDownload === true */}
+ {video.allowDownload && (
+  <a 
+    href={getDownloadUrl(video.videoUrl)}
+    download
+    className="action-btn"
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    ⬇️ Download
+  </a>
+)}
+</div>
 
           {/* Comments Section */}
           <div className="comments-section">

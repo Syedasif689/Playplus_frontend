@@ -12,14 +12,14 @@ function EditVideo() {
         title: '',
         description: '',
         videoUrl: '',
-        thumbnail: ''
+        thumbnail: '',
+        allowDownload: false   // ✅ added
     });
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
 
-    // Redirect if not logged in
     useEffect(() => {
         if (!user) {
             navigate('/');
@@ -27,25 +27,22 @@ function EditVideo() {
         }
     }, [user, navigate]);
 
-    // Load video data
     useEffect(() => {
         const loadVideo = async () => {
             try {
                 const response = await videoApi.getVideo(videoId);
                 const video = response.data;
-                
-                // Check if user owns this video
                 if (video.creatorId !== user?.id) {
                     alert('You don\'t have permission to edit this video');
                     navigate('/profile');
                     return;
                 }
-                
                 setFormData({
                     title: video.title || '',
                     description: video.description || '',
                     videoUrl: video.videoUrl || '',
-                    thumbnail: video.thumbnail || ''
+                    thumbnail: video.thumbnail || '',
+                    allowDownload: video.allowDownload || false   // ✅ load it
                 });
             } catch (error) {
                 console.error('Error loading video:', error);
@@ -54,16 +51,17 @@ function EditVideo() {
                 setLoading(false);
             }
         };
-        
         if (videoId && user) {
             loadVideo();
         }
     }, [videoId, user, navigate]);
 
+    // ✅ Handle checkboxes properly
     const handleChange = (e) => {
+        const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
         setFormData({
             ...formData,
-            [e.target.name]: e.target.value
+            [e.target.name]: value
         });
     };
 
@@ -73,7 +71,6 @@ function EditVideo() {
         setSuccess('');
         setSaving(true);
 
-        // Validate
         if (!formData.title.trim()) {
             setError('Title is required');
             setSaving(false);
@@ -88,11 +85,9 @@ function EditVideo() {
         try {
             await videoApi.update(videoId, formData);
             setSuccess('✅ Video updated successfully!');
-            
             setTimeout(() => {
                 navigate(`/watch/${videoId}`);
             }, 1500);
-
         } catch (error) {
             console.error('Update error:', error);
             setError(error.response?.data || 'Failed to update video');
@@ -164,6 +159,25 @@ function EditVideo() {
                         />
                     </div>
 
+                    {/* ✅ New: Allow Download toggle */}
+                    <div className="form-group">
+    <div className="checkbox-group">
+        <input
+            type="checkbox"
+            name="allowDownload"
+            id="allowDownload"
+            checked={formData.allowDownload || false}
+            onChange={handleChange}
+        />
+        <label htmlFor="allowDownload">
+            Allow users to download this video
+            <span className="checkbox-description">
+                (Users can download the video file)
+            </span>
+        </label>
+    </div>
+</div>
+
                     {error && <div className="error-message">{error}</div>}
                     {success && <div className="success-message">{success}</div>}
 
@@ -171,8 +185,8 @@ function EditVideo() {
                         <button type="submit" disabled={saving}>
                             {saving ? 'Saving...' : '💾 Save Changes'}
                         </button>
-                        <button 
-                            type="button" 
+                        <button
+                            type="button"
                             className="cancel-btn"
                             onClick={() => navigate(`/watch/${videoId}`)}
                         >
