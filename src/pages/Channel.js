@@ -27,7 +27,7 @@ function Channel() {
       try {
         const response = await channelApi.getChannel(creator);
         const data = response.data;
-        setChannelInfo(data);
+        
         setSubscriberCount(data.subscriberCount || 0);
         setSubscribed(data.isSubscribed || false);
         setIsOwnChannel(data.isOwnChannel || false);
