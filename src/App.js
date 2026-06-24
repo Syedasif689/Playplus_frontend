@@ -1,4 +1,4 @@
-﻿import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import Navbar from "./components/Navbar";
 
@@ -31,7 +31,7 @@ function App() {
           <Route path="/edit/:videoId" element={<EditVideo />} />
           <Route path="/history" element={<History />} />
           <Route path="/liked" element={<LikedVideos />} />
-          {/* ✅ 404 Not Found – catch any unknown routes */}
+          {/* ? 404 Not Found � catch any unknown routes */}
           <Route path="*" element={<div style={{ color: '#f1f1f1', textAlign: 'center', padding: '60px 20px' }}><h1>404 - Page Not Found</h1><p>The page you're looking for doesn't exist.</p></div>} />
         </Routes>
       </BrowserRouter>
