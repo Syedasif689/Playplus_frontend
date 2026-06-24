@@ -15,7 +15,6 @@ function Channel() {
   const [shareSuccess, setShareSuccess] = useState(false);
 
   // ✅ State for channel info from backend
-  const [channelInfo, setChannelInfo] = useState(null);
   const [subscriberCount, setSubscriberCount] = useState(0);
   const [subscribed, setSubscribed] = useState(false);
   const [isOwnChannel, setIsOwnChannel] = useState(false);
