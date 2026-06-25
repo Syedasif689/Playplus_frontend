@@ -422,10 +422,17 @@
   }
   .nav-center {
     margin: 0 8px;
+    flex: 1;
+    min-width: 0; /* prevents overflow */
   }
   .search-input-field {
     font-size: 13px;
     padding: 8px 12px;
+  }
+  .clear-search-btn,
+  .search-icon-btn {
+    padding: 6px 10px;
+    font-size: 14px;
   }
   .sidebar {
     width: 260px;
@@ -435,7 +442,7 @@
     left: 0;
   }
   .username {
-    display: none; /* hide username on small screens */
+    display: none;
   }
   .profile-avatar-small {
     width: 28px;
@@ -446,7 +453,6 @@
     padding: 6px 14px;
     font-size: 13px;
   }
-  /* Adjust search results on tablets */
   .search-results-dropdown {
     max-height: 400px;
   }
@@ -462,12 +468,13 @@
 /* Mobile phones */
 @media (max-width: 480px) {
   .navbar {
-    padding: 6px 10px;
+    padding: 6px 8px;
     height: 48px;
-    gap: 10px;
+    gap: 6px;
   }
   .nav-left {
-    gap: 6px;
+    gap: 4px;
+    flex-shrink: 0;
   }
   .hamburger span {
     width: 20px;
@@ -478,22 +485,42 @@
   .nav-center {
     margin: 0 4px;
     flex: 1;
-    min-width: 0; /* prevent overflow */
+    min-width: 0; /* prevents overflow */
+    max-width: none; /* allow shrinking */
   }
   .search-input-container {
-    border-radius: 20px; /* slightly smaller radius */
+    border-radius: 20px;
+    width: 100%;
   }
   .search-input-field {
     font-size: 12px;
-    padding: 6px 10px;
+    padding: 6px 8px;
+    min-width: 40px; /* ensures some input width */
   }
   .search-input-field::placeholder {
-    font-size: 12px;
+    font-size: 11px;
   }
   .clear-search-btn,
   .search-icon-btn {
-    padding: 6px 10px;
+    padding: 4px 8px;
     font-size: 14px;
+    flex-shrink: 0; /* prevent shrinking */
+  }
+  .nav-right {
+    gap: 6px;
+    flex-shrink: 0;
+  }
+  .profile-link {
+    padding: 4px 6px;
+  }
+  .profile-avatar-small {
+    width: 24px;
+    height: 24px;
+    font-size: 11px;
+  }
+  .login-btn {
+    padding: 4px 10px;
+    font-size: 12px;
   }
   .sidebar {
     width: 240px;
@@ -506,19 +533,6 @@
     padding: 10px 20px;
     font-size: 14px;
   }
-  .profile-link {
-    padding: 4px 8px;
-  }
-  .profile-avatar-small {
-    width: 24px;
-    height: 24px;
-    font-size: 11px;
-  }
-  .login-btn {
-    padding: 5px 12px;
-    font-size: 12px;
-  }
-  /* Search results dropdown mobile */
   .search-results-dropdown {
     max-height: 350px;
     top: calc(100% + 4px);
@@ -560,7 +574,7 @@
   .navbar {
     padding: 4px 6px;
     height: 44px;
-    gap: 6px;
+    gap: 4px;
   }
   .logo h2 {
     font-size: 14px;
@@ -570,11 +584,11 @@
   }
   .search-input-field {
     font-size: 11px;
-    padding: 4px 8px;
+    padding: 4px 6px;
   }
   .search-icon-btn,
   .clear-search-btn {
-    padding: 4px 8px;
+    padding: 4px 6px;
     font-size: 12px;
   }
   .profile-avatar-small {
@@ -583,7 +597,7 @@
     font-size: 10px;
   }
   .login-btn {
-    padding: 4px 10px;
+    padding: 3px 8px;
     font-size: 11px;
   }
   .sidebar {
