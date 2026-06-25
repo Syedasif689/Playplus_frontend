@@ -24,7 +24,7 @@ function Navbar() {
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
   const closeSidebar = () => setSidebarOpen(false);
 
-  // Load videos (unchanged)
+  // Load videos for search
   useEffect(() => {
     const loadVideos = async () => {
       try {
@@ -50,7 +50,7 @@ function Navbar() {
     loadVideos();
   }, []);
 
-  // Search logic (unchanged)
+  // Search logic
   useEffect(() => {
     if (searchText.trim() !== "") {
       const results = allVideos.filter(video => {
@@ -93,7 +93,7 @@ function Navbar() {
     return () => document.removeEventListener('mousedown', handleOutsideClick);
   }, [sidebarOpen]);
 
-  // Handlers (video selection, search, etc.)
+  // Handlers
   const handleVideoSelect = (videoId) => {
     navigate(`/watch/${videoId}`);
     setShowSearchResults(false);
@@ -140,7 +140,6 @@ function Navbar() {
     }
   };
 
-  // ✅ Updated logout with confirmation
   const handleLogout = () => {
     if (window.confirm("Are you sure you want to log out?")) {
       logout();
