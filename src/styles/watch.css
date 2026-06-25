@@ -94,6 +94,8 @@ body {
   overflow: hidden;
   position: relative;
   aspect-ratio: 16 / 9;
+  /* 👇 Prevent blue highlight on mobile tap */
+  -webkit-tap-highlight-color: transparent;
 }
 
 .video-wrapper {
@@ -102,6 +104,10 @@ body {
   height: 100%;
   background: #000;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.video-wrapper:focus {
+  outline: none;
 }
 
 .video-element {
@@ -109,6 +115,7 @@ body {
   height: 100%;
   display: block;
   background: #000;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* ===== VIDEO TITLE & METADATA ===== */
@@ -898,6 +905,15 @@ body {
   .comments-controls {
     width: 100%;
     justify-content: space-between;
+  }
+  /* Fine-tune channel row on very small screens */
+  .channel-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .subscribe-btn {
+    width: 100%;
+    justify-content: center;
   }
 }
 
