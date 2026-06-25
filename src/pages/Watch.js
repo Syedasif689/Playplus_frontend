@@ -447,18 +447,15 @@ function Watch() {
       return;
     }
 
-    // Optimistic update: instantly update UI
     const prevReaction = reaction;
     const prevLikes = likes;
     const prevDislikes = dislikes;
 
-    // If same reaction, remove it (toggle off)
     if (prevReaction === type) {
       setReaction(null);
       if (type === "like") setLikes(prevLikes - 1);
       else setDislikes(prevDislikes - 1);
     } else {
-      // If switching from like to dislike or vice versa
       setReaction(type);
       if (type === "like") {
         setLikes(prevLikes + 1);
@@ -469,7 +466,6 @@ function Watch() {
       }
     }
 
-    // Actually call API in background
     try {
       let response;
       if (type === "like") {
@@ -477,13 +473,11 @@ function Watch() {
       } else {
         response = await videoApi.dislike(video.id);
       }
-      // Sync with server response
       setLikes(response.data.likes);
       setDislikes(response.data.dislikes);
       setReaction(response.data.reaction);
     } catch (error) {
       console.error("Error updating reaction:", error);
-      // Revert optimistic changes on error
       setLikes(prevLikes);
       setDislikes(prevDislikes);
       setReaction(prevReaction);
@@ -683,10 +677,207 @@ function Watch() {
             )}
           </div>
 
-          {/* Comments Section - unchanged */}
+          {/* ============ COMMENTS SECTION ============ */}
           <div className="comments-section">
-            {/* ... (same as before) */}
+            <div className="comments-card">
+              <div className="comments-card-header">
+                <div className="comments-header-left">
+                  <h3>Comments</h3>
+                  <span className="comments-count">{comments.length}</span>
+                </div>
+                <div className="comments-controls">
+                  <button onClick={() => setShowComments(prev => !prev)}>
+                    {showComments ? "Hide Comments" : "Show Comments"}
+                  </button>
+                  <select value={sortType} onChange={(e) => setSortType(e.target.value)}>
+                    <option value="newest">Newest First</option>
+                    <option value="top">Top Comments</option>
+                  </select>
+                </div>
+              </div>
+
+              {showComments && (
+                <>
+                  <div className="comment-input-area">
+                    <div className="comment-input-wrapper">
+                      <div className="comment-avatar">
+                        <div
+                          className="avatar"
+                          style={{
+                            backgroundColor: user?.username ? getAvatarColor(user.username) : '#3ea6ff'
+                          }}
+                        >
+                          {user?.username ? getUserAvatar(user.username) : 'G'}
+                        </div>
+                      </div>
+                      <div className="comment-input-field">
+                        <input
+                          type="text"
+                          value={commentText}
+                          onChange={(e) => setCommentText(e.target.value)}
+                          placeholder="Add a comment..."
+                          onKeyPress={(e) => e.key === "Enter" && handleAddComment()}
+                        />
+                        <div className="comment-input-actions">
+                          <button
+                            className="cancel-btn"
+                            onClick={() => setCommentText("")}
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            className="comment-submit-btn"
+                            onClick={handleAddComment}
+                            disabled={!commentText.trim()}
+                          >
+                            Comment
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="comments-list-container">
+                    {commentsLoading ? (
+                      <div className="loading-comments">Loading comments...</div>
+                    ) : (
+                      <div className="comments-list">
+                        {sortedComments.map(comment => {
+                          const replyCount = countReplies(comment.replies);
+                          const hasReplies = replyCount > 0;
+                          const showReplies = showRepliesFor[comment.id] || false;
+
+                          return (
+                            <div key={comment.id} className="comment-card-item">
+                              <div className="comment-avatar">
+                                <div
+                                  className="avatar small"
+                                  style={{
+                                    backgroundColor: comment.avatarColor || getAvatarColor(comment.user)
+                                  }}
+                                >
+                                  {comment.userAvatar || comment.user?.charAt(0).toUpperCase() || 'G'}
+                                </div>
+                              </div>
+                              <div className="comment-content-wrapper">
+                                <div className="comment-header">
+                                  <strong>{comment.user}</strong>
+                                  <span className="comment-date">
+                                    {new Date(comment.createdAt).toLocaleDateString()}
+                                  </span>
+                                </div>
+
+                                {editingId === comment.id ? (
+                                  <div className="edit-comment">
+                                    <input
+                                      type="text"
+                                      value={editText}
+                                      onChange={(e) => setEditText(e.target.value)}
+                                      onKeyPress={(e) => e.key === "Enter" && handleEditComment()}
+                                      autoFocus
+                                    />
+                                    <button onClick={handleEditComment}>Save</button>
+                                    <button onClick={handleCancelEdit}>Cancel</button>
+                                  </div>
+                                ) : (
+                                  <>
+                                    <div className="comment-text">{comment.text}</div>
+                                    <div className="comment-actions">
+                                      <button
+                                        onClick={() => handleCommentLike(comment.id)}
+                                        className="like-btn"
+                                      >
+                                        👍 {comment.likes}
+                                      </button>
+                                      <button
+                                        onClick={() => toggleReplyInput(comment.id)}
+                                        className="reply-btn"
+                                      >
+                                        Reply
+                                      </button>
+                                      {user?.id === comment.userId && (
+                                        <>
+                                          <button onClick={() => handleStartEdit(comment.id, comment.text)}>
+                                            Edit
+                                          </button>
+                                          <button onClick={() => handleDeleteComment(comment.id)}>
+                                            Delete
+                                          </button>
+                                        </>
+                                      )}
+                                    </div>
+
+                                    {showReplyInput[comment.id] && (
+                                      <div className="inline-reply-input">
+                                        <div className="reply-input-wrapper">
+                                          <div className="reply-avatar">
+                                            <div
+                                              className="avatar tiny"
+                                              style={{
+                                                backgroundColor: user?.username ? getAvatarColor(user.username) : '#3ea6ff'
+                                              }}
+                                            >
+                                              {user?.username ? getUserAvatar(user.username) : 'G'}
+                                            </div>
+                                          </div>
+                                          <div className="reply-input-field">
+                                            <input
+                                              type="text"
+                                              placeholder="Write a reply..."
+                                              value={replyText[comment.id] || ""}
+                                              onChange={(e) => setReplyText(prev => ({ ...prev, [comment.id]: e.target.value }))}
+                                              onKeyPress={(e) => e.key === "Enter" && handleReply(comment.id)}
+                                              autoFocus
+                                            />
+                                            <div className="reply-input-actions">
+                                              <button onClick={() => toggleReplyInput(comment.id)}>
+                                                Cancel
+                                              </button>
+                                              <button onClick={() => handleReply(comment.id)}>
+                                                Reply
+                                              </button>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    )}
+
+                                    {hasReplies && (
+                                      <div className="replies-toggle">
+                                        <button
+                                          onClick={() => toggleRepliesVisibility(comment.id)}
+                                          className="replies-toggle-btn"
+                                        >
+                                          {showReplies ? "▼" : "▶"} {replyCount} {replyCount === 1 ? "Reply" : "Replies"}
+                                        </button>
+                                      </div>
+                                    )}
+
+                                    {hasReplies && showReplies && (
+                                      <div className="replies-container">
+                                        {comment.replies && comment.replies.length > 0 && renderReplies(comment.replies, 0)}
+                                      </div>
+                                    )}
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+
+                        {comments.length === 0 && (
+                          <div className="no-comments">
+                            <p>No comments yet. Be the first to comment!</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
           </div>
+          {/* ============ END COMMENTS ============ */}
         </div>
       </div>
 
