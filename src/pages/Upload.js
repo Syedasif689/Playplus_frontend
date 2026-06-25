@@ -132,7 +132,7 @@ function Upload() {
             let videoUrl, thumbnailUrl;
 
             // 1. Upload video to Cloudinary
-            setError('Uploading video to cloud...');
+            setError('Uploading your video please wait...');
             videoUrl = await uploadToCloudinary(videoFile, 'video');
             console.log('Video uploaded:', videoUrl);
 
