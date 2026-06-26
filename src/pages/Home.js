@@ -67,7 +67,7 @@ function Home() {
     return (
       <div className="home-loading">
         <div className="loading-spinner"></div>
-        <p>Loading videos...</p>
+        
       </div>
     );
   }
