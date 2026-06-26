@@ -94,7 +94,6 @@ body {
   overflow: hidden;
   position: relative;
   aspect-ratio: 16 / 9;
-  /* 👇 Prevent blue highlight on mobile tap */
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -128,6 +127,7 @@ body {
   font-weight: 600;
   line-height: 1.4;
   color: #f1f1f1;
+  margin: 0;
 }
 
 .video-views {
@@ -203,6 +203,7 @@ body {
 .channel-name {
   font-weight: 500;
   font-size: 15px;
+  white-space: nowrap;
 }
 
 .subscriber-count {
@@ -246,6 +247,11 @@ body {
   opacity: 0.7;
 }
 
+.subscribe-btn:disabled:not(.own-channel) {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 /* ===== VIDEO DESCRIPTION ===== */
 .video-description {
   background: #1a1a1a;
@@ -264,6 +270,8 @@ body {
   line-height: 1.7;
   font-size: 14px;
   margin: 0;
+  white-space: pre-wrap;
+  word-wrap: break-word;
 }
 
 .show-more-btn {
@@ -393,6 +401,11 @@ body {
   border-radius: 8px;
   font-size: 13px;
   cursor: pointer;
+  outline: none;
+}
+
+.comments-controls select:hover {
+  background: #3a3a3a;
 }
 
 /* ===== COMMENT INPUT ===== */
@@ -551,6 +564,7 @@ body {
   font-size: 14px;
   line-height: 1.5;
   margin-top: 4px;
+  word-wrap: break-word;
 }
 
 .comment-actions {
@@ -558,6 +572,7 @@ body {
   gap: 16px;
   align-items: center;
   margin-top: 8px;
+  flex-wrap: wrap;
 }
 
 .comment-actions button {
@@ -603,6 +618,7 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
+  margin-bottom: 2px;
 }
 
 .reply-header strong {
@@ -621,12 +637,14 @@ body {
   font-size: 13px;
   line-height: 1.5;
   margin-top: 4px;
+  word-wrap: break-word;
 }
 
 .reply-actions {
   display: flex;
   gap: 12px;
   margin-top: 6px;
+  flex-wrap: wrap;
 }
 
 .reply-actions button {
@@ -644,6 +662,150 @@ body {
 .reply-actions button:hover {
   background: #272727;
   color: #f1f1f1;
+}
+
+/* Reply avatar small */
+.reply-avatar-small {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 600;
+  color: #0f0f0f;
+  flex-shrink: 0;
+}
+
+/* Reply Input Form */
+.reply-input-form {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+.reply-input-form input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid #3a3a3a;
+  padding: 6px 0;
+  color: #f1f1f1;
+  font-size: 13px;
+  outline: none;
+  min-width: 120px;
+  transition: border-color 0.2s ease;
+}
+
+.reply-input-form input:focus {
+  border-bottom-color: #3ea6ff;
+}
+
+.reply-input-form input::placeholder {
+  color: #888;
+  font-size: 12px;
+}
+
+.reply-input-form button {
+  background: transparent;
+  border: none;
+  color: #3ea6ff;
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.reply-input-form button:hover {
+  background: #1a1a1a;
+}
+
+.reply-input-form button:last-child {
+  color: #aaa;
+}
+
+.reply-input-form button:last-child:hover {
+  background: #2a2a2a;
+  color: #f1f1f1;
+}
+
+/* Inline Reply Input (inside comment) */
+.inline-reply-input {
+  margin-top: 12px;
+  margin-left: 0;
+}
+
+.reply-input-wrapper {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.reply-avatar {
+  flex-shrink: 0;
+}
+
+.reply-input-field {
+  flex: 1;
+}
+
+.reply-input-field input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid #3a3a3a;
+  padding: 6px 0;
+  color: #f1f1f1;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.reply-input-field input:focus {
+  border-bottom-color: #3ea6ff;
+}
+
+.reply-input-field input::placeholder {
+  color: #888;
+  font-size: 12px;
+}
+
+.reply-input-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+.reply-input-actions button {
+  background: transparent;
+  border: none;
+  color: #aaa;
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.reply-input-actions button:first-child:hover {
+  background: #2a2a2a;
+  color: #f1f1f1;
+}
+
+.reply-input-actions button:last-child {
+  background: #3ea6ff;
+  color: #0f0f0f;
+  font-weight: 600;
+}
+
+.reply-input-actions button:last-child:hover {
+  background: #5cb8ff;
 }
 
 /* ===== REPLIES TOGGLE ===== */
@@ -732,6 +894,7 @@ body {
   border-radius: 8px;
   color: #f1f1f1;
   font-size: 14px;
+  outline: none;
 }
 
 .share-copy-btn {
@@ -742,10 +905,19 @@ body {
   color: #0f0f0f;
   font-weight: 600;
   cursor: pointer;
+  transition: background 0.2s;
+}
+
+.share-copy-btn:hover {
+  background: #5cb8ff;
 }
 
 .share-copy-btn.copied {
   background: #00c853;
+}
+
+.share-copy-btn.copied:hover {
+  background: #00e676;
 }
 
 .share-social-section p {
@@ -769,25 +941,22 @@ body {
   transition: all 0.2s ease;
 }
 
-.share-social-btn.whatsapp {
-  background: #25D366;
-}
-
-.share-social-btn.twitter {
-  background: #1DA1F2;
-}
-
-.share-social-btn.facebook {
-  background: #1877F2;
-}
-
-.share-social-btn.reddit {
-  background: #FF4500;
-}
-
 .share-social-btn:hover {
   transform: scale(1.02);
   opacity: 0.9;
+}
+
+.share-social-btn.whatsapp {
+  background: #25D366;
+}
+.share-social-btn.twitter {
+  background: #1DA1F2;
+}
+.share-social-btn.facebook {
+  background: #1877F2;
+}
+.share-social-btn.reddit {
+  background: #FF4500;
 }
 
 /* ===== RESPONSIVE ===== */
@@ -871,6 +1040,19 @@ body {
     margin-left: 20px;
     padding-left: 12px;
   }
+  .comment-input-wrapper {
+    flex-direction: column;
+  }
+  .reply-input-form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .reply-input-actions {
+    justify-content: flex-start;
+  }
+  .reply-input-wrapper {
+    flex-direction: column;
+  }
 }
 
 @media (max-width: 480px) {
@@ -906,7 +1088,6 @@ body {
     width: 100%;
     justify-content: space-between;
   }
-  /* Fine-tune channel row on very small screens */
   .channel-row {
     flex-direction: column;
     align-items: stretch;
@@ -914,6 +1095,30 @@ body {
   .subscribe-btn {
     width: 100%;
     justify-content: center;
+  }
+  .share-modal {
+    width: 95%;
+    padding: 16px;
+  }
+  .share-social-buttons {
+    justify-content: center;
+  }
+  .replies-section {
+    margin-left: 12px;
+    padding-left: 8px;
+  }
+  .reply-item {
+    padding-bottom: 8px;
+  }
+  .reply-text {
+    font-size: 12px;
+  }
+  .reply-header strong {
+    font-size: 11px;
+  }
+  .reply-actions button {
+    font-size: 10px;
+    padding: 3px 6px;
   }
 }
 

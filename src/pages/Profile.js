@@ -42,14 +42,12 @@ function Profile() {
     // Load profile data from localStorage
     useEffect(() => {
         if (user) {
-            // Load bio
             const savedBio = localStorage.getItem(`bio_${user.id}`);
             if (savedBio) {
                 setBio(savedBio);
                 setEditedBio(savedBio);
             }
 
-            // Load social links
             const savedSocialLinks = localStorage.getItem(`socialLinks_${user.id}`);
             if (savedSocialLinks) {
                 const parsed = JSON.parse(savedSocialLinks);
@@ -57,7 +55,6 @@ function Profile() {
                 setEditedSocialLinks(parsed);
             }
 
-            // Load custom links
             const savedLinks = localStorage.getItem(`customLinks_${user.id}`);
             if (savedLinks) {
                 setLinks(JSON.parse(savedLinks));
@@ -100,12 +97,10 @@ function Profile() {
 
         const loadUserData = async () => {
             try {
-                // 1. Get user's channel info to get subscriber count
                 const channelResponse = await channelApi.getChannel(user.username);
                 const channelData = channelResponse.data;
                 setSubscriberCount(channelData.subscriberCount || 0);
 
-                // 2. Get user's videos
                 const response = await videoApi.getAll();
                 const allVideos = response.data || [];
                 const userVideosList = allVideos.filter(v => v.creator === user.username);
@@ -121,11 +116,6 @@ function Profile() {
                     totalLikes: totalLikes
                 });
 
-                // Check milestone (using current count - we don't have previous count from backend easily, so we'll just check now)
-                // We could store previous count in localStorage, but for simplicity we'll just show if milestone is reached.
-                // However we have the milestone logic using previous count to avoid repeated notifications.
-                // We'll call checkForMilestone with prevCount = 0 (or stored value) and current = channelData.subscriberCount.
-                // But to avoid complexity, we can just store the last notified count in localStorage.
                 const lastNotified = localStorage.getItem(`lastSubCount_${user.id}`);
                 const prevCount = lastNotified ? parseInt(lastNotified) : 0;
                 if (channelData.subscriberCount > prevCount) {
@@ -135,8 +125,6 @@ function Profile() {
 
             } catch (error) {
                 console.error('Error loading user data:', error);
-                // Fallback to old localStorage method for subscriber count (if needed)
-                // But we'll just show 0
             }
             setLoading(false);
         };
@@ -158,15 +146,12 @@ function Profile() {
     };
 
     const handleSaveProfile = () => {
-        // Save bio
         localStorage.setItem(`bio_${user.id}`, editedBio);
         setBio(editedBio);
 
-        // Save social links
         localStorage.setItem(`socialLinks_${user.id}`, JSON.stringify(editedSocialLinks));
         setSocialLinks(editedSocialLinks);
 
-        // Save custom links
         localStorage.setItem(`customLinks_${user.id}`, JSON.stringify(links));
 
         setIsEditing(false);
@@ -231,13 +216,38 @@ function Profile() {
         navigate('/');
     };
 
+    // ✅ UPDATED: Wave loading animation
     if (authLoading || loading) {
-        return (
-            <div className="profile-container">
-                <div className="loading-spinner">Loading profile...</div>
+    return (
+        <div className="profile-container">
+            <div className="loading-wrapper">
+                {/* Animation container - circle and waves share this space */}
+                <div className="loading-animation">
+                    {/* Spinner - rotates */}
+                    <div className="spinner-wrapper">
+                        <div className="spinner-ring"></div>
+                    </div>
+                    
+                    {/* Waves - separate, NOT rotating, same position */}
+                    <div className="wave-wrapper">
+                        <div className="wave-container">
+                            <div className="wave-bar"></div>
+                            <div className="wave-bar"></div>
+                            <div className="wave-bar"></div>
+                            <div className="wave-bar"></div>
+                            <div className="wave-bar"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                {/* Loading text - below the animation, completely separate */}
+                <div className="loading-text">
+                    Loading<span>.</span><span>.</span><span>.</span>
+                </div>
             </div>
-        );
-    }
+        </div>
+    );
+}
 
     if (!user) {
         return null;
@@ -334,7 +344,6 @@ function Profile() {
                                 <p className="profile-bio-empty">No bio yet. Click "Edit Profile" to add one.</p>
                             )
                         ) : (
-                            // Edit Mode
                             <div className="profile-edit-mode">
                                 <div className="edit-section">
                                     <label>Bio</label>
@@ -485,9 +494,7 @@ function Profile() {
                     </Link>
                 </div>
 
-                {loading ? (
-                    <div className="loading-spinner">Loading your videos...</div>
-                ) : userVideos.length > 0 ? (
+                {userVideos.length > 0 ? (
                     <div className="videos-grid">
                         {userVideos.map(video => (
                             <div key={video.id} className="video-card">

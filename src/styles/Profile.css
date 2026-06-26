@@ -890,29 +890,132 @@
     transform: translateY(-2px);
     box-shadow: 0 4px 25px rgba(62, 166, 255, 0.35);
 }
+/* ============================================
+   LOADING ANIMATION - CIRCLE + WAVES SAME POSITION
+   ============================================ */
 
-/* ---------- LOADING ---------- */
-.loading-spinner {
-    text-align: center;
+.loading-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
     padding: 80px 20px;
-    color: var(--text-muted);
-    font-size: 16px;
+    gap: 24px;
 }
 
-.loading-spinner::before {
-    content: '';
-    display: block;
+/* Animation container - both circle and waves share this space */
+.loading-animation {
+    position: relative;
     width: 40px;
     height: 40px;
-    margin: 0 auto 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Spinner wrapper - positioned in center */
+.spinner-wrapper {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 1;
+    animation: spinner-fade 2.4s ease-in-out infinite;
+}
+
+.loading-wrapper .spinner-ring {
+    width: 32px;
+    height: 32px;
     border: 3px solid var(--border-color);
     border-top-color: var(--accent);
     border-radius: 50%;
-    animation: spin 0.8s linear infinite;
+    animation: spin 0.9s linear infinite;
+}
+
+/* Wave wrapper - positioned in same center, DOES NOT rotate */
+.wave-wrapper {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    animation: wave-fade 2.4s ease-in-out infinite;
+}
+
+.loading-wrapper .wave-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+}
+
+.loading-wrapper .wave-bar {
+    width: 3px;
+    background: var(--accent);
+    border-radius: 2px;
+    animation: wave 0.8s ease-in-out infinite;
+}
+
+.loading-wrapper .wave-bar:nth-child(1) { animation-delay: 0s; height: 10px; }
+.loading-wrapper .wave-bar:nth-child(2) { animation-delay: 0.1s; height: 16px; }
+.loading-wrapper .wave-bar:nth-child(3) { animation-delay: 0.2s; height: 22px; }
+.loading-wrapper .wave-bar:nth-child(4) { animation-delay: 0.3s; height: 16px; }
+.loading-wrapper .wave-bar:nth-child(5) { animation-delay: 0.4s; height: 10px; }
+
+/* Fade between spinner and waves */
+@keyframes spinner-fade {
+    0%, 45% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    50%, 80% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+    95%, 100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+@keyframes wave-fade {
+    0%, 45% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+    50%, 80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    95%, 100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
 }
 
 @keyframes spin {
-    to { transform: rotate(360deg); }
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes wave {
+    0%, 100% { transform: scaleY(0.4); }
+    50% { transform: scaleY(1); }
+}
+
+/* Loading text - below the animation, completely separate */
+.loading-wrapper .loading-text {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 15px;
+    color: var(--text-muted);
+    margin-top: 0;
+}
+
+.loading-wrapper .loading-text span {
+    animation: text-dot 1.4s ease-in-out infinite;
+}
+
+.loading-wrapper .loading-text span:nth-child(2) {
+    animation-delay: 0.2s;
+}
+.loading-wrapper .loading-text span:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes text-dot {
+    0%, 80%, 100% { opacity: 0; }
+    40% { opacity: 1; }
 }
 
 /* ---------- BUTTON GROUP ---------- */

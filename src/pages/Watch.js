@@ -36,6 +36,10 @@ function Watch() {
   const [subscriberCount, setSubscriberCount] = useState(0);
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isOwnChannel, setIsOwnChannel] = useState(false);
+  const [isSubscribing, setIsSubscribing] = useState(false);
+  
+  // Related videos (from backend)
+  const [relatedVideos, setRelatedVideos] = useState([]);
   
   // Share states
   const [showShareModal, setShowShareModal] = useState(false);
@@ -44,11 +48,6 @@ function Watch() {
   // Video Reaction
   const [reaction, setReaction] = useState(null);
 
-  // Get videos from localStorage + defaults
-  const uploadedVideos = JSON.parse(localStorage.getItem("videos") || "[]");
-  const allVideos = [...uploadedVideos, ...defaultVideos];
-  const relatedVideos = allVideos.filter(v => v.id !== Number(id)).slice(0, 6);
-  
   // Comments State
   const [comments, setComments] = useState([]);
   const [commentsLoading, setCommentsLoading] = useState(true);
@@ -76,7 +75,7 @@ function Watch() {
           setLikes(response.data.likes || 0);
           setDislikes(response.data.dislikes || 0);
           setViews(response.data.views || 0);
-          // Fetch creator info
+          
           if (response.data.creator) {
             try {
               const channelResponse = await channelApi.getChannel(response.data.creator);
@@ -88,10 +87,12 @@ function Watch() {
               console.warn('Could not fetch creator info:', err);
             }
           }
+          
+          await loadRelatedVideos(response.data);
         }
       } catch (error) {
         console.log("Video not in database, using local data");
-        const localVideo = allVideos.find(v => v.id === Number(id));
+        const localVideo = defaultVideos.find(v => v.id === Number(id));
         if (localVideo) {
           setVideo(localVideo);
           setLikes(localVideo.likes || 120);
@@ -108,14 +109,41 @@ function Watch() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
+  // Load related videos from backend
+  const loadRelatedVideos = useCallback(async (currentVideo) => {
+    try {
+      const response = await videoApi.getAll();
+      const allVideos = response.data || [];
+      
+      let filtered = allVideos.filter(v => v.id !== currentVideo.id);
+      
+      if (currentVideo.creator) {
+        const creatorVideos = filtered.filter(v => v.creator === currentVideo.creator);
+        const otherVideos = filtered.filter(v => v.creator !== currentVideo.creator);
+        filtered = [...creatorVideos, ...otherVideos];
+      }
+      
+      if (filtered.length === 0) {
+        const localVideos = defaultVideos.filter(v => v.id !== Number(id));
+        setRelatedVideos(localVideos.slice(0, 6));
+        return;
+      }
+      
+      setRelatedVideos(filtered.slice(0, 6));
+      
+    } catch (error) {
+      console.error('Error loading related videos:', error);
+      const localVideos = defaultVideos.filter(v => v.id !== Number(id));
+      setRelatedVideos(localVideos.slice(0, 6));
+    }
+  }, [id]);
+
   // Track view after video loads
   useEffect(() => {
     const trackView = async () => {
       if (video?.id && !viewTracked) {
         try {
-          console.log('📊 Tracking view for video:', video.id);
           const response = await videoApi.trackView(video.id);
-          console.log('📊 View tracking response:', response.data);
           if (response.data && response.data.views !== undefined) {
             setViews(response.data.views);
           }
@@ -261,6 +289,13 @@ function Watch() {
     if (count >= 1000000) return (count / 1000000).toFixed(1) + 'M';
     if (count >= 1000) return (count / 1000).toFixed(1) + 'K';
     return count;
+  };
+
+  // Format subscriber count
+  const formatSubscriberCount = (count) => {
+    if (count >= 1000000) return (count / 1000000).toFixed(1) + 'M';
+    if (count >= 1000) return (count / 1000).toFixed(1) + 'K';
+    return count.toString();
   };
 
   // SHARE FUNCTIONALITY
@@ -485,7 +520,7 @@ function Watch() {
     }
   }, [user, video, reaction, likes, dislikes]);
 
-  // Subscribe handler
+  // ✅ SUBSCRIBE HANDLER – OPTIMISTIC & FAST
   const handleSubscribe = async () => {
     if (!user) {
       alert('Please login to subscribe');
@@ -495,18 +530,31 @@ function Watch() {
       alert('You cannot subscribe to your own channel');
       return;
     }
+    
+    // Optimistic update – UI changes instantly
+    const newSubscribed = !isSubscribed;
+    setIsSubscribed(newSubscribed);
+    setSubscriberCount(prev => newSubscribed ? prev + 1 : Math.max(0, prev - 1));
+    setIsSubscribing(true);
+    
     try {
       let response;
-      if (isSubscribed) {
-        response = await channelApi.unsubscribe(video.creator);
-      } else {
+      if (newSubscribed) {
         response = await channelApi.subscribe(video.creator);
+      } else {
+        response = await channelApi.unsubscribe(video.creator);
       }
+      // Sync with server response
       setIsSubscribed(response.data.subscribed);
       setSubscriberCount(response.data.subscriberCount);
     } catch (error) {
       console.error('Subscribe error:', error);
+      // Revert on error
+      setIsSubscribed(!newSubscribed);
+      setSubscriberCount(prev => !newSubscribed ? prev + 1 : Math.max(0, prev - 1));
       alert(error.response?.data?.error || 'Failed to update subscription');
+    } finally {
+      setIsSubscribing(false);
     }
   };
 
@@ -624,15 +672,16 @@ function Watch() {
                 <span className="channel-name">{video.creator}</span>
               </Link>
               {!isOwnChannel && (
-                <span className="subscriber-count">{formatViews(subscriberCount)} subscribers</span>
+                <span className="subscriber-count">{formatSubscriberCount(subscriberCount)} subscribers</span>
               )}
             </div>
             <button
               className={`subscribe-btn ${isSubscribed ? 'subscribed' : ''} ${isOwnChannel ? 'own-channel' : ''}`}
               onClick={handleSubscribe}
-              disabled={isOwnChannel || !user}
+              disabled={isOwnChannel || !user || isSubscribing}
             >
               {isOwnChannel ? 'Your Channel' : isSubscribed ? 'Subscribed ✓' : 'Subscribe'}
+              {!isOwnChannel && isSubscribing && '...'}
             </button>
           </div>
 
@@ -719,12 +768,7 @@ function Watch() {
                           onKeyPress={(e) => e.key === "Enter" && handleAddComment()}
                         />
                         <div className="comment-input-actions">
-                          <button
-                            className="cancel-btn"
-                            onClick={() => setCommentText("")}
-                          >
-                            Cancel
-                          </button>
+                          <button className="cancel-btn" onClick={() => setCommentText("")}>Cancel</button>
                           <button
                             className="comment-submit-btn"
                             onClick={handleAddComment}
@@ -797,12 +841,8 @@ function Watch() {
                                       </button>
                                       {user?.id === comment.userId && (
                                         <>
-                                          <button onClick={() => handleStartEdit(comment.id, comment.text)}>
-                                            Edit
-                                          </button>
-                                          <button onClick={() => handleDeleteComment(comment.id)}>
-                                            Delete
-                                          </button>
+                                          <button onClick={() => handleStartEdit(comment.id, comment.text)}>Edit</button>
+                                          <button onClick={() => handleDeleteComment(comment.id)}>Delete</button>
                                         </>
                                       )}
                                     </div>
@@ -830,12 +870,8 @@ function Watch() {
                                               autoFocus
                                             />
                                             <div className="reply-input-actions">
-                                              <button onClick={() => toggleReplyInput(comment.id)}>
-                                                Cancel
-                                              </button>
-                                              <button onClick={() => handleReply(comment.id)}>
-                                                Reply
-                                              </button>
+                                              <button onClick={() => toggleReplyInput(comment.id)}>Cancel</button>
+                                              <button onClick={() => handleReply(comment.id)}>Reply</button>
                                             </div>
                                           </div>
                                         </div>
@@ -884,15 +920,19 @@ function Watch() {
       {/* RIGHT SIDE - RELATED VIDEOS */}
       <div className="related-sidebar">
         <h3>Related Videos</h3>
-        {relatedVideos.map(relatedVideo => (
-          <Link key={relatedVideo.id} to={`/watch/${relatedVideo.id}`} className="related-video">
-            <img src={relatedVideo.thumbnail} alt={relatedVideo.title} />
-            <div className="related-video-info">
-              <h4>{relatedVideo.title}</h4>
-              <p>{relatedVideo.creator}</p>
-            </div>
-          </Link>
-        ))}
+        {relatedVideos.length > 0 ? (
+          relatedVideos.map(relatedVideo => (
+            <Link key={relatedVideo.id} to={`/watch/${relatedVideo.id}`} className="related-video">
+              <img src={relatedVideo.thumbnail || 'https://picsum.photos/300/180'} alt={relatedVideo.title} />
+              <div className="related-video-info">
+                <h4>{relatedVideo.title}</h4>
+                <p>{relatedVideo.creator || 'Unknown'}</p>
+              </div>
+            </Link>
+          ))
+        ) : (
+          <p style={{ color: '#888', fontSize: '14px' }}>No related videos found.</p>
+        )}
       </div>
 
       {/* SHARE MODAL */}

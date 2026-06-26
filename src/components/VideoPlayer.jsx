@@ -2,16 +2,17 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import '../styles/VideoPlayer.css';
 
 function VideoPlayer({ src, title }) {
-    // ✅ Hooks are always called (no early return)
     const videoRef = useRef(null);
     const controlsTimeoutRef = useRef(null);
+    const progressRef = useRef(null);
     const [isPlaying, setIsPlaying] = useState(false);
     const [progress, setProgress] = useState(0);
     const [duration, setDuration] = useState(0);
     const [volume, setVolume] = useState(1);
     const [isMuted, setIsMuted] = useState(false);
-    const [isFullscreen, setIsFullscreen] = useState(false);
     const [controlsVisible, setControlsVisible] = useState(true);
+    const [isDragging, setIsDragging] = useState(false);
+    const [hoverProgress, setHoverProgress] = useState(null);
 
     // ----- Control visibility -----
     const showControls = useCallback(() => {
@@ -42,10 +43,8 @@ function VideoPlayer({ src, title }) {
     const toggleFullscreen = useCallback(() => {
         if (!document.fullscreenElement) {
             videoRef.current?.requestFullscreen();
-            setIsFullscreen(true);
         } else {
             document.exitFullscreen();
-            setIsFullscreen(false);
         }
         showControls();
     }, [showControls]);
@@ -72,7 +71,7 @@ function VideoPlayer({ src, title }) {
 
     // Update progress
     const handleTimeUpdate = () => {
-        if (videoRef.current) {
+        if (videoRef.current && !isDragging) {
             const current = videoRef.current.currentTime;
             const total = videoRef.current.duration;
             if (total) {
@@ -82,18 +81,76 @@ function VideoPlayer({ src, title }) {
         }
     };
 
-    // Seek
+    // ----- GET POSITION FROM EVENT (Mouse or Touch) -----
+    const getPosition = (e) => {
+        if (!progressRef.current) return 0;
+        const rect = progressRef.current.getBoundingClientRect();
+        let clientX;
+        if (e.touches) {
+            // Touch event
+            clientX = e.touches[0].clientX;
+        } else {
+            // Mouse event
+            clientX = e.clientX;
+        }
+        return Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+    };
+
+    // ----- SEEK (Click on progress bar) -----
     const handleSeek = (e) => {
-        if (!videoRef.current) return;
-        const rect = e.currentTarget.getBoundingClientRect();
-        const x = (e.clientX - rect.left) / rect.width;
+        if (!videoRef.current || !progressRef.current) return;
+        const x = getPosition(e);
         const seekTime = x * videoRef.current.duration;
         videoRef.current.currentTime = seekTime;
         setProgress(x * 100);
         showControls();
     };
 
-    // Volume
+    // ----- DRAG START -----
+    const handleDragStart = (e) => {
+        e.preventDefault();
+        setIsDragging(true);
+        const x = getPosition(e);
+        const seekTime = x * videoRef.current.duration;
+        videoRef.current.currentTime = seekTime;
+        setProgress(x * 100);
+        showControls();
+    };
+
+    // ----- DRAG MOVE -----
+    const handleDragMove = useCallback((e) => {
+        if (isDragging && videoRef.current && progressRef.current) {
+            e.preventDefault();
+            const x = getPosition(e);
+            const seekTime = x * videoRef.current.duration;
+            videoRef.current.currentTime = seekTime;
+            setProgress(x * 100);
+        }
+    }, [isDragging]);
+
+    // ----- DRAG END -----
+    const handleDragEnd = useCallback(() => {
+        if (isDragging) {
+            setIsDragging(false);
+            showControls();
+        }
+    }, [isDragging, showControls]);
+
+    // ----- MOUSE MOVE ON PROGRESS (Hover preview) -----
+    const handleProgressHover = (e) => {
+        if (!progressRef.current || isDragging) return;
+        const x = getPosition(e);
+        const hoverTime = x * duration;
+        setHoverProgress(hoverTime);
+    };
+
+    const handleProgressLeave = () => {
+        if (!isDragging) {
+            setHoverProgress(null);
+        }
+    };
+
+    // ----- Volume -----
     const handleVolumeChange = (e) => {
         const val = parseFloat(e.target.value);
         setVolume(val);
@@ -113,9 +170,29 @@ function VideoPlayer({ src, title }) {
         showControls();
     };
 
+    // ----- Drag event listeners (Mouse + Touch) -----
+    useEffect(() => {
+        if (isDragging) {
+            // Mouse events
+            document.addEventListener('mousemove', handleDragMove);
+            document.addEventListener('mouseup', handleDragEnd);
+            // Touch events
+            document.addEventListener('touchmove', handleDragMove, { passive: false });
+            document.addEventListener('touchend', handleDragEnd);
+            document.addEventListener('touchcancel', handleDragEnd);
+        }
+        return () => {
+            document.removeEventListener('mousemove', handleDragMove);
+            document.removeEventListener('mouseup', handleDragEnd);
+            document.removeEventListener('touchmove', handleDragMove);
+            document.removeEventListener('touchend', handleDragEnd);
+            document.removeEventListener('touchcancel', handleDragEnd);
+        };
+    }, [isDragging, handleDragMove, handleDragEnd]);
+
     // Format time
     const formatTime = (time) => {
-        if (!time) return '0:00';
+        if (!time || isNaN(time)) return '0:00';
         const minutes = Math.floor(time / 60);
         const seconds = Math.floor(time % 60);
         return `${minutes}:${seconds.toString().padStart(2, '0')}`;
@@ -163,7 +240,6 @@ function VideoPlayer({ src, title }) {
     }, []);
 
     // ----- RENDER SECTION -----
-    // Validate src – if missing, show fallback UI
     const hasValidSrc = typeof src === 'string' && src.trim() !== '';
 
     if (!hasValidSrc) {
@@ -174,13 +250,17 @@ function VideoPlayer({ src, title }) {
         );
     }
 
+    // Hover time preview position
+    const hoverTimeDisplay = hoverProgress !== null ? formatTime(hoverProgress) : '';
+    const hoverPosition = hoverProgress !== null ? (hoverProgress / duration) * 100 : 0;
+
     return (
         <div 
             className="video-player-container"
             onMouseMove={showControls}
             onMouseEnter={showControls}
             onMouseLeave={() => {
-                if (isPlaying) {
+                if (isPlaying && !isDragging) {
                     clearTimeout(controlsTimeoutRef.current);
                     controlsTimeoutRef.current = setTimeout(() => {
                         setControlsVisible(false);
@@ -195,6 +275,7 @@ function VideoPlayer({ src, title }) {
                     src={src}
                     onTimeUpdate={handleTimeUpdate}
                     onLoadedMetadata={handleTimeUpdate}
+                    playsInline
                 />
                 {!isPlaying && (
                     <div className="play-overlay">
@@ -203,42 +284,80 @@ function VideoPlayer({ src, title }) {
                 )}
             </div>
 
+            {/* ----- CUSTOM CONTROLS ----- */}
             <div 
                 className={`video-controls ${controlsVisible ? 'visible' : 'hidden'}`}
                 onClick={(e) => e.stopPropagation()}
                 onMouseEnter={showControls}
                 onMouseMove={showControls}
             >
-                <button className="control-btn" onClick={togglePlay}>
-                    {isPlaying ? '⏸' : '▶'}
-                </button>
+                {/* Progress Bar with Hover Preview */}
+                <div className="progress-section">
+                    <div 
+                        className={`progress-container ${isDragging ? 'dragging' : ''}`}
+                        ref={progressRef}
+                        onClick={handleSeek}
+                        onMouseMove={handleProgressHover}
+                        onMouseLeave={handleProgressLeave}
+                    >
+                        {/* Progress track */}
+                        <div className="progress-track">
+                            <div className="progress-bar" style={{ width: `${progress}%` }} />
+                        </div>
 
-                <div className="progress-container" onClick={handleSeek}>
-                    <div className="progress-bar" style={{ width: `${progress}%` }} />
+                        {/* Progress thumb - draggable with mouse & touch */}
+                        <div 
+                            className="progress-thumb" 
+                            style={{ left: `${progress}%` }}
+                            onMouseDown={handleDragStart}
+                            onTouchStart={handleDragStart}
+                        />
+
+                        {/* Hover preview tooltip */}
+                        {hoverProgress !== null && !isDragging && (
+                            <div 
+                                className="progress-hover-tooltip" 
+                                style={{ left: `${hoverPosition}%` }}
+                            >
+                                {hoverTimeDisplay}
+                            </div>
+                        )}
+                    </div>
                 </div>
 
-                <span className="time-display">
-                    {formatTime(videoRef.current?.currentTime || 0)} / {formatTime(duration)}
-                </span>
+                {/* Controls Row */}
+                <div className="controls-row">
+                    <div className="controls-left">
+                        <button className="control-btn" onClick={togglePlay}>
+                            {isPlaying ? '⏸' : '▶'}
+                        </button>
 
-                <div className="volume-control">
-                    <button className="control-btn" onClick={toggleMute}>
-                        {isMuted ? '🔇' : volume > 0.5 ? '🔊' : '🔉'}
-                    </button>
-                    <input
-                        type="range"
-                        min="0"
-                        max="1"
-                        step="0.01"
-                        value={isMuted ? 0 : volume}
-                        onChange={handleVolumeChange}
-                        className="volume-slider"
-                    />
+                        <span className="time-display">
+                            {formatTime(videoRef.current?.currentTime || 0)} / {formatTime(duration)}
+                        </span>
+                    </div>
+
+                    <div className="controls-right">
+                        <div className="volume-control">
+                            <button className="control-btn" onClick={toggleMute}>
+                                {isMuted ? '🔇' : volume > 0.5 ? '🔊' : '🔉'}
+                            </button>
+                            <input
+                                type="range"
+                                min="0"
+                                max="1"
+                                step="0.01"
+                                value={isMuted ? 0 : volume}
+                                onChange={handleVolumeChange}
+                                className="volume-slider"
+                            />
+                        </div>
+
+                        <button className="control-btn" onClick={toggleFullscreen}>
+                            ⛶
+                        </button>
+                    </div>
                 </div>
-
-                <button className="control-btn" onClick={toggleFullscreen}>
-                    {isFullscreen ? '⛶' : '⛶'}
-                </button>
             </div>
         </div>
     );
