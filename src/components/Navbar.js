@@ -241,9 +241,12 @@ function Navbar() {
       {/* ===== SIDEBAR ===== */}
       <div className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
-          <h2>▶ Play+</h2>
-          <button className="sidebar-close" onClick={closeSidebar}>✕</button>
-        </div>
+  <div className="sidebar-logo">
+    <img src="/play+-logo.png" alt="Play+" className="sidebar-logo-image" />
+    <h2>Play+</h2>
+  </div>
+  <button className="sidebar-close" onClick={closeSidebar}>✕</button>
+</div>
         <ul className="sidebar-nav">
           <li><Link to="/" onClick={closeSidebar}>🏠 Home</Link></li>
           <li><Link to="/trending" onClick={closeSidebar}>🔥 Trending</Link></li>

@@ -300,7 +300,23 @@
   opacity: 1;
   pointer-events: auto;
 }
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
 
+.sidebar-logo-image {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+}
+
+.sidebar-header h2 {
+  color: #f1f1f1;
+  font-size: 20px;
+  margin: 0;
+}
 /* ===== SIDEBAR ===== */
 .sidebar {
   position: fixed;
