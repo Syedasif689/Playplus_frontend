@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const API = axios.create({
-    baseURL: 'https://playplus-backend-1.onrender.com/api',
+    baseURL: 'https://play-rltgyiwr.b4a.run/',
     headers: {
         'Content-Type': 'application/json',
     },
