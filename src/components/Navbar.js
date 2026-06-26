@@ -1,12 +1,27 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import "../styles/Navbar.css";
+import { useNavigate, Link, NavLink } from "react-router-dom";
 import defaultVideos from "../data/videos";
 import { useAuth } from '../contexts/AuthContext';
 import { videoApi } from '../services/api';
 import LoginModal from './LoginModal';
 import SignupModal from './SignupModal';
-
+import "../styles/Navbar.css";
+import {
+  MdHome,
+  MdSubscriptions,
+  MdOutlineVideoCall,
+  MdHistory,
+  MdThumbUp,
+  MdLogout,
+  MdLogin,
+  MdSearch,
+  MdWhatshot
+} from "react-icons/md";
+import {
+  MdAccountCircle,
+} from "react-icons/md";
+import { FaTrophy } from "react-icons/fa";
+import { MdNotifications } from "react-icons/md";
 function Navbar() {
   const [searchText, setSearchText] = useState("");
   const [showSearchResults, setShowSearchResults] = useState(false);
@@ -178,7 +193,9 @@ function Navbar() {
                 {searchText ? (
                   <button type="button" className="clear-search-btn" onClick={handleClearSearch}>✕</button>
                 ) : (
-                  <button type="submit" className="search-icon-btn">🔍</button>
+                 <button type="submit" className="search-icon-btn">
+                  <MdSearch size={22} />
+                 </button>
                 )}
               </div>
             </form>
@@ -222,17 +239,28 @@ function Navbar() {
         </div>
 
         <div className="nav-right">
-          {user ? (
-            <Link to="/profile" className="profile-link" onClick={closeSidebar}>
-              <span className="profile-avatar-small">
-                {user.username?.charAt(0).toUpperCase() || 'U'}
-              </span>
-              <span className="username">{user.username}</span>
-            </Link>
-          ) : (
-            <button className="login-btn" onClick={() => setShowLoginModal(true)}>Login</button>
-          )}
-        </div>
+  {user ? (
+    <>
+       
+      
+      
+      <Link to="/notifications" className="notification-btn">
+        <MdNotifications size={26} />
+      </Link>
+      <Link to="/profile" className="profile-link">
+        <MdAccountCircle size={35} />
+        <span className="username">{user.username}</span>
+      </Link>
+    </>
+  ) : (
+    <button
+      className="login-btn"
+      onClick={() => setShowLoginModal(true)}
+    >
+      Login
+    </button>
+  )}
+</div>
       </nav>
 
       {/* ===== SIDEBAR OVERLAY ===== */}
@@ -248,21 +276,84 @@ function Navbar() {
   <button className="sidebar-close" onClick={closeSidebar}>✕</button>
 </div>
         <ul className="sidebar-nav">
-          <li><Link to="/" onClick={closeSidebar}>🏠 Home</Link></li>
-          <li><Link to="/trending" onClick={closeSidebar}>🔥 Trending</Link></li>
-          {user && <li><Link to="/subscriptions" onClick={closeSidebar}>📺 Subscriptions</Link></li>}
-          <li><Link to="/upload" onClick={closeSidebar}>📤 Upload</Link></li>
-          {user && <li><Link to="/milestones" onClick={closeSidebar}>🏆 Milestones</Link></li>}
-          {user && <li><Link to="/history" onClick={closeSidebar}>📜 History</Link></li>}
-          {user && <li><Link to="/liked" onClick={closeSidebar}>❤️ Liked Videos</Link></li>}
-        </ul>
-        <div className="sidebar-footer">
-          {user ? (
-            <button className="sidebar-logout" onClick={handleLogout}>🚪 Logout</button>
-          ) : (
-            <button className="sidebar-login" onClick={() => { setShowLoginModal(true); closeSidebar(); }}>🔑 Login</button>
-          )}
-        </div>
+
+  <li>
+    <NavLink to="/" onClick={closeSidebar}>
+      <MdHome size={22} />
+      <span>Home</span>
+       </NavLink>
+  </li>
+
+  <li>
+    <NavLink to="/trending" onClick={closeSidebar}>
+      <MdWhatshot size={22} />
+      <span>Trending</span>
+    </NavLink>
+  </li>
+
+  {user && (
+    <li>
+      <NavLink to="/subscriptions" onClick={closeSidebar}>
+        <MdSubscriptions size={22} />
+        <span>Subscriptions</span>
+       </NavLink>
+    </li>
+  )}
+
+  <li>
+    <NavLink to="/upload" onClick={closeSidebar}>
+      <MdOutlineVideoCall size={22} />
+      <span>Upload</span>
+    </NavLink>
+  </li>
+
+  {user && (
+    <li>
+      <NavLink to="/milestones" onClick={closeSidebar}>
+        <FaTrophy size={20} />
+        <span>Milestones</span>
+      </NavLink>
+    </li>
+  )}
+
+  {user && (
+    <li>
+      <NavLink to="/history" onClick={closeSidebar}>
+        <MdHistory size={22} />
+        <span>History</span>
+      </NavLink>
+    </li>
+  )}
+
+  {user && (
+    <li>
+      <NavLink to="/liked" onClick={closeSidebar}>
+        <MdThumbUp size={22} />
+        <span>Liked Videos</span>
+       </NavLink>
+    </li>
+  )}
+
+</ul>
+       <div className="sidebar-footer">
+  {user ? (
+    <button className="sidebar-logout" onClick={handleLogout}>
+      <MdLogout size={22} />
+      <span>Logout</span>
+    </button>
+  ) : (
+    <button
+      className="sidebar-login"
+      onClick={() => {
+        setShowLoginModal(true);
+        closeSidebar();
+      }}
+    >
+      <MdLogin size={22} />
+      <span>Login</span>
+    </button>
+  )}
+</div>
       </div>
 
       {/* ===== AUTH MODALS ===== */}
