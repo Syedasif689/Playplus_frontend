@@ -20,6 +20,13 @@ function Channel() {
   const [isOwnChannel, setIsOwnChannel] = useState(false);
   const [loadingChannel, setLoadingChannel] = useState(true);
 
+  // Format subscriber count
+  const formatSubscriberCount = (count) => {
+    if (count >= 1000000) return (count / 1000000).toFixed(1) + 'M';
+    if (count >= 1000) return (count / 1000).toFixed(1) + 'K';
+    return count.toString();
+  };
+
   // ✅ Load channel info from backend
   useEffect(() => {
     const loadChannelInfo = async () => {
@@ -44,7 +51,7 @@ function Channel() {
     }
   }, [creator]);
 
-  // ✅ Load creator videos (existing logic, but we can use channelInfo.videoCount)
+  // ✅ Load creator videos
   useEffect(() => {
     const loadCreatorVideos = async () => {
       setLoading(true);
@@ -101,7 +108,7 @@ function Channel() {
     }
   }, [creator]);
 
-  // ✅ Handle subscribe - using API
+  // ✅ Handle subscribe - using API with optimistic update
   const handleSubscribe = async () => {
     if (isOwnChannel) {
       alert('You cannot subscribe to your own channel');
@@ -113,38 +120,43 @@ function Channel() {
       return;
     }
 
+    // Optimistic update
+    const newSubscribed = !subscribed;
+    setSubscribed(newSubscribed);
+    setSubscriberCount(prev => newSubscribed ? prev + 1 : Math.max(0, prev - 1));
+
     try {
       let response;
-      if (subscribed) {
-        // Unsubscribe
-        response = await channelApi.unsubscribe(creator);
-      } else {
-        // Subscribe
+      if (newSubscribed) {
         response = await channelApi.subscribe(creator);
+      } else {
+        response = await channelApi.unsubscribe(creator);
       }
       
-      // Update state with response
       setSubscribed(response.data.subscribed);
       setSubscriberCount(response.data.subscriberCount);
       
     } catch (error) {
       console.error('Error toggling subscription:', error);
+      // Revert on error
+      setSubscribed(!newSubscribed);
+      setSubscriberCount(prev => !newSubscribed ? prev + 1 : Math.max(0, prev - 1));
       alert(error.response?.data?.error || 'Failed to update subscription');
     }
   };
 
-  // ✅ Handle share - same as before
+  // ✅ FIXED: Handle share - URL appears only ONCE
   const handleShare = async () => {
     const url = window.location.href;
     const channelName = creator || 'Unknown Channel';
-    const shareText = `Check out ${channelName}'s channel on Play+! 🎬\n\n${url}`;
 
+    // Try native share API first (mobile)
     if (navigator.share) {
       try {
         await navigator.share({
           title: `${channelName} - Play+ Channel`,
-          text: shareText,
-          url: url
+          text: `Check out ${channelName}'s channel on Play+! 🎬`,
+          url: url  // ✅ URL is sent separately, not in text
         });
         return;
       } catch (error) {
@@ -154,6 +166,8 @@ function Channel() {
       }
     }
 
+    // Fallback: Copy to clipboard - clean text with URL once
+    const shareText = `Check out ${channelName}'s channel on Play+! 🎬\n\n${url}`;
     try {
       await navigator.clipboard.writeText(shareText);
       setShareSuccess(true);
@@ -167,7 +181,7 @@ function Channel() {
     }
   };
 
-  // ✅ Combined loading state
+  // Combined loading state
   if (loading || loadingChannel) {
     return (
       <div className="channel-container">
@@ -179,14 +193,14 @@ function Channel() {
     );
   }
 
-  // ✅ Determine button text
+  // Determine button text
   const getButtonText = () => {
     if (isOwnChannel) return 'Your Channel';
     if (!user) return 'Login to Subscribe';
     return subscribed ? 'Subscribed ✓' : 'Subscribe';
   };
 
-  // ✅ Determine if button should be disabled
+  // Determine if button should be disabled
   const isButtonDisabled = () => {
     return isOwnChannel || !user;
   };
@@ -211,7 +225,7 @@ function Channel() {
               >
                 {getButtonText()}
                 {!isOwnChannel && subscriberCount > 0 && (
-                  <span className="sub-count">• {subscriberCount}</span>
+                  <span className="sub-count">• {formatSubscriberCount(subscriberCount)}</span>
                 )}
               </button>
               
@@ -226,7 +240,7 @@ function Channel() {
           </div>
 
           <p>
-            {creatorVideos.length} Videos • {subscriberCount} Subscribers
+            {creatorVideos.length} Videos • {formatSubscriberCount(subscriberCount)} Subscribers
           </p>
 
           {shareSuccess && (
