@@ -1,10 +1,20 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { Link, useParams } from "react-router-dom";
 import defaultVideos from "../data/videos";
 import "../styles/watch.css";
 import { videoApi, commentApi, channelApi } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import VideoPlayer from '../components/VideoPlayer';
+import {
+  MdThumbUp,
+  MdThumbDown,
+  MdShare,
+  MdDownload,
+  MdReply,
+  MdEdit,
+  MdDelete,
+  MdClose
+} from "react-icons/md";
 
 function Watch() {
   const { user } = useAuth();
@@ -51,6 +61,14 @@ function Watch() {
   // Comments State
   const [comments, setComments] = useState([]);
   const [commentsLoading, setCommentsLoading] = useState(true);
+
+  // Loading states for async operations
+  const [isPostingComment, setIsPostingComment] = useState(false);
+  const [isPostingReply, setIsPostingReply] = useState(false);
+  const [isReacting, setIsReacting] = useState(false);
+  
+  // Ref to track pending like requests
+  const pendingLikes = useRef(new Map());
 
   // Helper to generate download URL for Cloudinary videos
   const getDownloadUrl = (url) => {
@@ -137,6 +155,11 @@ function Watch() {
       setRelatedVideos(localVideos.slice(0, 6));
     }
   }, [id]);
+
+  // Reset viewTracked when video changes
+  useEffect(() => {
+    setViewTracked(false);
+  }, [video?.id]);
 
   // Track view after video loads
   useEffect(() => {
@@ -238,15 +261,12 @@ function Watch() {
   }, []);
 
   const findAndDeleteNode = useCallback((nodes, targetId) => {
-    return nodes.filter(node => {
-      if (node.id === targetId) {
-        return false;
-      }
-      if (node.replies && node.replies.length > 0) {
-        node.replies = findAndDeleteNode(node.replies, targetId);
-      }
-      return true;
-    });
+    return nodes
+      .filter(node => node.id !== targetId)
+      .map(node => ({
+        ...node,
+        replies: node.replies ? findAndDeleteNode(node.replies, targetId) : []
+      }));
   }, []);
 
   const insertReplyNode = useCallback((nodes, parentId, newReply) => {
@@ -267,6 +287,17 @@ function Watch() {
     });
   }, []);
 
+  const findOriginalNode = useCallback((nodes, commentId) => {
+    for (const node of nodes) {
+      if (node.id === commentId) return node;
+      if (node.replies) {
+        const found = findOriginalNode(node.replies, commentId);
+        if (found) return found;
+      }
+    }
+    return null;
+  }, []);
+
   // Get user avatar
   const getUserAvatar = (username) => {
     if (!username) return 'G';
@@ -284,19 +315,16 @@ function Watch() {
     return colors[Math.abs(hash) % colors.length];
   };
 
-  // Format views count
-  const formatViews = (count) => {
-    if (count >= 1000000) return (count / 1000000).toFixed(1) + 'M';
-    if (count >= 1000) return (count / 1000).toFixed(1) + 'K';
-    return count;
-  };
-
-  // Format subscriber count
-  const formatSubscriberCount = (count) => {
+  // Format number
+  const formatNumber = useCallback((count) => {
+    if (!count) return '0';
     if (count >= 1000000) return (count / 1000000).toFixed(1) + 'M';
     if (count >= 1000) return (count / 1000).toFixed(1) + 'K';
     return count.toString();
-  };
+  }, []);
+
+  const formatViews = formatNumber;
+  const formatSubscriberCount = formatNumber;
 
   // SHARE FUNCTIONALITY
   const handleShare = async () => {
@@ -350,62 +378,241 @@ function Watch() {
     setShareCopied(false);
   };
 
-  // COMMENT CRUD OPERATIONS
-  const handleAddComment = useCallback(async () => {
-    if (!commentText.trim()) return;
-    if (!user?.id) {
-      alert("Please login to comment");
+  // =============================================
+  // ✅ COMMENT LIKE SYSTEM - CORRECTLY WORKING
+  // =============================================
+  const handleCommentLike = useCallback(async (commentId) => {
+    // ✅ Skip if it's a temporary comment (not in DB yet)
+    if (typeof commentId === 'string' && commentId.startsWith('temp_')) {
       return;
     }
+
+    if (!user?.id) {
+      alert("Please login to like comments");
+      return;
+    }
+
+    if (pendingLikes.current.has(commentId)) {
+      return;
+    }
+    pendingLikes.current.set(commentId, true);
+
     try {
-      const response = await commentApi.addComment(video.id, commentText.trim());
-      const newComment = {
-        id: response.data.id,
-        text: response.data.text,
-        user: response.data.user,
-        userId: response.data.userId,
-        likes: response.data.likes || 0,
-        likedBy: [],
-        replies: [],
-        createdAt: new Date(response.data.createdAt).getTime(),
-        userAvatar: response.data.user ? getUserAvatar(response.data.user) : 'G',
-        avatarColor: response.data.user ? getAvatarColor(response.data.user) : '#3ea6ff'
+      let currentLikes = 0;
+      let currentLikedBy = [];
+      let isCurrentlyLiked = false;
+
+      const findComment = (nodes) => {
+        for (const node of nodes) {
+          if (node.id === commentId) {
+            currentLikes = node.likes || 0;
+            currentLikedBy = node.likedBy || [];
+            isCurrentlyLiked = currentLikedBy.includes(user.id);
+            return true;
+          }
+          if (node.replies && findComment(node.replies)) {
+            return true;
+          }
+        }
+        return false;
       };
-      setComments(prev => [newComment, ...prev]);
-      setCommentText("");
+
+      const commentsCopy = JSON.parse(JSON.stringify(comments));
+      const found = findComment(commentsCopy);
+
+      if (!found) {
+        pendingLikes.current.delete(commentId);
+        return;
+      }
+
+      const newLikedBy = isCurrentlyLiked
+        ? currentLikedBy.filter(id => id !== user.id)
+        : [...currentLikedBy, user.id];
+      
+      const newLikes = isCurrentlyLiked
+        ? Math.max(0, currentLikes - 1)
+        : currentLikes + 1;
+
+      setComments(prevComments => {
+        const updateNode = (nodes) => {
+          return nodes.map(node => {
+            if (node.id === commentId) {
+              return {
+                ...node,
+                likes: newLikes,
+                likedBy: newLikedBy
+              };
+            }
+            if (node.replies) {
+              return {
+                ...node,
+                replies: updateNode(node.replies)
+              };
+            }
+            return node;
+          });
+        };
+        return updateNode(prevComments);
+      });
+
+      await commentApi.likeComment(commentId);
+      
+    } catch (error) {
+      console.error('Error liking comment:', error);
+      
+      setComments(prevComments => {
+        const rollbackNode = (nodes) => {
+          return nodes.map(node => {
+            if (node.id === commentId) {
+              const original = findOriginalNode(prevComments, commentId);
+              return {
+                ...node,
+                likes: original?.likes || 0,
+                likedBy: original?.likedBy || []
+              };
+            }
+            if (node.replies) {
+              return {
+                ...node,
+                replies: rollbackNode(node.replies)
+              };
+            }
+            return node;
+          });
+        };
+        return rollbackNode(prevComments);
+      });
+      
+      alert('Failed to like comment. Please try again.');
+    } finally {
+      pendingLikes.current.delete(commentId);
+    }
+  }, [user, comments, findOriginalNode]);
+
+  // ✅ COMMENT CRUD OPERATIONS
+  const handleAddComment = useCallback(async () => {
+    if (!commentText.trim() || !user?.id || isPostingComment) {
+      if (!user?.id) alert("Please login to comment");
+      return;
+    }
+
+    const text = commentText.trim();
+    const tempId = `temp_${Date.now()}_${Math.random()}`;
+
+    const tempComment = {
+      id: tempId,
+      text: text,
+      user: user.username,
+      userId: user.id,
+      likes: 0,
+      likedBy: [],
+      replies: [],
+      createdAt: Date.now(),
+      userAvatar: getUserAvatar(user.username),
+      avatarColor: getAvatarColor(user.username),
+      isTemp: true
+    };
+
+    setIsPostingComment(true);
+    setComments(prev => [tempComment, ...prev]);
+    setCommentText("");
+
+    try {
+      const response = await commentApi.addComment(video.id, text);
+      
+      setComments(prev => {
+        const index = prev.findIndex(c => c.id === tempId);
+        if (index === -1) return prev;
+        
+        const newComments = [...prev];
+        newComments[index] = {
+          id: response.data.id,
+          text: response.data.text,
+          user: response.data.user,
+          userId: response.data.userId,
+          likes: response.data.likes || 0,
+          likedBy: response.data.likedBy || [],
+          replies: response.data.replies || [],
+          createdAt: new Date(response.data.createdAt).getTime(),
+          userAvatar: response.data.user ? getUserAvatar(response.data.user) : 'G',
+          avatarColor: response.data.user ? getAvatarColor(response.data.user) : '#3ea6ff'
+        };
+        return newComments;
+      });
     } catch (error) {
       console.error('Error adding comment:', error);
+      setComments(prev => prev.filter(c => c.id !== tempId));
       alert('Failed to add comment. Please try again.');
+    } finally {
+      setIsPostingComment(false);
     }
-  }, [commentText, user, video?.id]);
+  }, [commentText, user, video?.id, isPostingComment]);
 
   const handleEditComment = useCallback(async () => {
-    if (!editText.trim()) return;
-    try {
-      await commentApi.updateComment(editingId, editText.trim());
-      setComments(prev => findAndUpdateNode(prev, editingId, node => ({
+    if (!editText.trim() || !editingId) return;
+
+    const commentId = editingId;
+    const newText = editText.trim();
+    let originalText = '';
+    
+    setComments(prev => {
+      const findOriginal = (nodes) => {
+        for (const node of nodes) {
+          if (node.id === commentId) {
+            originalText = node.text;
+            return true;
+          }
+          if (node.replies && findOriginal(node.replies)) return true;
+        }
+        return false;
+      };
+      findOriginal(prev);
+      
+      return findAndUpdateNode(prev, commentId, node => ({
         ...node,
-        text: editText.trim()
-      })));
-      setEditingId(null);
-      setEditText("");
+        text: newText
+      }));
+    });
+    
+    setEditingId(null);
+    setEditText("");
+
+    try {
+      await commentApi.updateComment(commentId, newText);
     } catch (error) {
       console.error('Error updating comment:', error);
+      setComments(prev => findAndUpdateNode(prev, commentId, node => ({
+        ...node,
+        text: originalText
+      })));
       alert('Failed to update comment. Please try again.');
     }
   }, [editText, editingId, findAndUpdateNode]);
 
+  // ✅ FIXED: handleDeleteComment - Skip temporary comments
   const handleDeleteComment = useCallback(async (commentId) => {
+    // ✅ Skip if it's a temporary comment (not in DB yet)
+    if (typeof commentId === 'string' && commentId.startsWith('temp_')) {
+      alert('Please wait for the comment to be posted before deleting.');
+      return;
+    }
+
     if (!window.confirm("Are you sure you want to delete this comment?")) return;
+    
+    const deletedComment = comments.find(c => c.id === commentId);
+    setComments(prev => findAndDeleteNode(prev, commentId));
+
     try {
       await commentApi.deleteComment(commentId);
-      setComments(prev => findAndDeleteNode(prev, commentId));
       alert('✅ Comment deleted successfully!');
     } catch (error) {
       console.error('Error deleting comment:', error);
+      if (deletedComment) {
+        setComments(prev => [...prev, deletedComment].sort((a, b) => b.createdAt - a.createdAt));
+      }
       alert('Failed to delete comment. Please try again.');
     }
-  }, [findAndDeleteNode]);
+  }, [findAndDeleteNode, comments]);
 
   const handleStartEdit = useCallback((commentId, currentText) => {
     setEditingId(commentId);
@@ -417,51 +624,96 @@ function Watch() {
     setEditText("");
   }, []);
 
-  // COMMENT LIKE SYSTEM
-  const handleCommentLike = useCallback(async (commentId) => {
-    if (!user?.id) {
-      alert("Please login to like comments");
-      return;
-    }
-    try {
-      const response = await commentApi.likeComment(commentId);
-      setComments(prev => findAndUpdateNode(prev, commentId, node => ({
-        ...node,
-        likes: response.data.likes
-      })));
-    } catch (error) {
-      console.error('Error liking comment:', error);
-      alert('Failed to like comment. Please try again.');
-    }
-  }, [user, findAndUpdateNode]);
-
   // REPLY SYSTEM
   const handleReply = useCallback(async (parentId) => {
+    if (!user?.id) {
+      alert("Please login to reply");
+      return;
+    }
     const text = replyText[parentId];
-    if (!text?.trim()) return;
+    if (!text?.trim() || isPostingReply) return;
+
+    const tempReplyId = `temp_reply_${Date.now()}_${Math.random()}`;
+    
+    const tempReply = {
+      id: tempReplyId,
+      text: text.trim(),
+      user: user.username,
+      userId: user.id,
+      likes: 0,
+      likedBy: [],
+      replies: [],
+      createdAt: Date.now(),
+      userAvatar: getUserAvatar(user.username),
+      avatarColor: getAvatarColor(user.username),
+      isTemp: true
+    };
+
+    setIsPostingReply(true);
+    setComments(prev => insertReplyNode(prev, parentId, tempReply));
+    setReplyText(prev => ({ ...prev, [parentId]: "" }));
+    setShowReplyInput(prev => ({ ...prev, [parentId]: false }));
+    setShowRepliesFor(prev => ({ ...prev, [parentId]: true }));
+
     try {
       const response = await commentApi.addComment(video.id, text.trim(), parentId);
-      const newReply = {
-        id: response.data.id,
-        text: response.data.text,
-        user: response.data.user,
-        userId: response.data.userId,
-        likes: response.data.likes || 0,
-        likedBy: [],
-        replies: [],
-        createdAt: new Date(response.data.createdAt).getTime(),
-        userAvatar: response.data.user ? getUserAvatar(response.data.user) : 'G',
-        avatarColor: response.data.user ? getAvatarColor(response.data.user) : '#3ea6ff'
-      };
-      setComments(prev => insertReplyNode(prev, parentId, newReply));
-      setReplyText(prev => ({ ...prev, [parentId]: "" }));
-      setShowReplyInput(prev => ({ ...prev, [parentId]: false }));
-      setShowRepliesFor(prev => ({ ...prev, [parentId]: true }));
+      
+      setComments(prev => {
+        const replaceReply = (nodes) => {
+          return nodes.map(node => {
+            if (node.id === parentId) {
+              const replies = node.replies || [];
+              const index = replies.findIndex(r => r.id === tempReplyId);
+              if (index !== -1) {
+                const newReplies = [...replies];
+                newReplies[index] = {
+                  id: response.data.id,
+                  text: response.data.text,
+                  user: response.data.user,
+                  userId: response.data.userId,
+                  likes: response.data.likes || 0,
+                  likedBy: response.data.likedBy || [],
+                  replies: response.data.replies || [],
+                  createdAt: new Date(response.data.createdAt).getTime(),
+                  userAvatar: response.data.user ? getUserAvatar(response.data.user) : 'G',
+                  avatarColor: response.data.user ? getAvatarColor(response.data.user) : '#3ea6ff'
+                };
+                return { ...node, replies: newReplies };
+              }
+              return node;
+            }
+            if (node.replies) {
+              return { ...node, replies: replaceReply(node.replies) };
+            }
+            return node;
+          });
+        };
+        return replaceReply(prev);
+      });
     } catch (error) {
       console.error('Error adding reply:', error);
+      setComments(prev => {
+        const removeTempReply = (nodes) => {
+          return nodes.map(node => {
+            if (node.id === parentId) {
+              return {
+                ...node,
+                replies: (node.replies || []).filter(r => r.id !== tempReplyId)
+              };
+            }
+            if (node.replies) {
+              return { ...node, replies: removeTempReply(node.replies) };
+            }
+            return node;
+          });
+        };
+        return removeTempReply(prev);
+      });
       alert('Failed to add reply. Please try again.');
+    } finally {
+      setIsPostingReply(false);
     }
-  }, [replyText, video?.id, insertReplyNode]);
+  }, [replyText, user, video?.id, insertReplyNode, isPostingReply]);
 
   const toggleReplyInput = useCallback((id) => {
     setShowReplyInput(prev => ({ ...prev, [id]: !prev[id] }));
@@ -471,56 +723,63 @@ function Watch() {
     setShowRepliesFor(prev => ({ ...prev, [commentId]: !prev[commentId] }));
   }, []);
 
-  // VIDEO LIKE/DISLIKE – OPTIMISTIC UI
-  const handleVideoReaction = useCallback(async (type) => {
-    if (!user?.id) {
-      alert("Login required to like/dislike videos");
-      return;
-    }
-    if (!video?.id) {
-      alert("Video not found");
-      return;
-    }
+  // =============================================
+// ✅ VIDEO LIKE/DISLIKE - OPTIMISTIC UI
+// =============================================
+const handleVideoReaction = async (type) => {
+  if (!user?.id) {
+    alert("Login required");
+    return;
+  }
 
-    const prevReaction = reaction;
-    const prevLikes = likes;
-    const prevDislikes = dislikes;
+  if (isReacting) return;
 
-    if (prevReaction === type) {
+  setIsReacting(true);
+
+  const oldReaction = reaction;
+
+  try {
+    if (oldReaction === type) {
+      // Remove reaction
       setReaction(null);
-      if (type === "like") setLikes(prevLikes - 1);
-      else setDislikes(prevDislikes - 1);
+
+      if (type === "like") {
+        setLikes(prev => Math.max(0, prev - 1));
+      } else {
+        setDislikes(prev => Math.max(0, prev - 1));
+      }
     } else {
+      // Switch reaction
       setReaction(type);
+
       if (type === "like") {
-        setLikes(prevLikes + 1);
-        if (prevReaction === "dislike") setDislikes(prevDislikes - 1);
+        setLikes(prev => prev + 1);
+
+        if (oldReaction === "dislike") {
+          setDislikes(prev => Math.max(0, prev - 1));
+        }
       } else {
-        setDislikes(prevDislikes + 1);
-        if (prevReaction === "like") setLikes(prevLikes - 1);
+        setDislikes(prev => prev + 1);
+
+        if (oldReaction === "like") {
+          setLikes(prev => Math.max(0, prev - 1));
+        }
       }
     }
 
-    try {
-      let response;
-      if (type === "like") {
-        response = await videoApi.like(video.id);
-      } else {
-        response = await videoApi.dislike(video.id);
-      }
-      setLikes(response.data.likes);
-      setDislikes(response.data.dislikes);
-      setReaction(response.data.reaction);
-    } catch (error) {
-      console.error("Error updating reaction:", error);
-      setLikes(prevLikes);
-      setDislikes(prevDislikes);
-      setReaction(prevReaction);
-      alert("Failed to update reaction. Please try again.");
+    if (type === "like") {
+      await videoApi.like(video.id);
+    } else {
+      await videoApi.dislike(video.id);
     }
-  }, [user, video, reaction, likes, dislikes]);
 
-  // ✅ SUBSCRIBE HANDLER – OPTIMISTIC & FAST
+  } catch (error) {
+    console.error(error);
+  } finally {
+    setIsReacting(false);
+  }
+};
+  // SUBSCRIBE HANDLER
   const handleSubscribe = async () => {
     if (!user) {
       alert('Please login to subscribe');
@@ -531,7 +790,6 @@ function Watch() {
       return;
     }
     
-    // Optimistic update – UI changes instantly
     const newSubscribed = !isSubscribed;
     setIsSubscribed(newSubscribed);
     setSubscriberCount(prev => newSubscribed ? prev + 1 : Math.max(0, prev - 1));
@@ -544,12 +802,10 @@ function Watch() {
       } else {
         response = await channelApi.unsubscribe(video.creator);
       }
-      // Sync with server response
       setIsSubscribed(response.data.subscribed);
       setSubscriberCount(response.data.subscriberCount);
     } catch (error) {
       console.error('Subscribe error:', error);
-      // Revert on error
       setIsSubscribed(!newSubscribed);
       setSubscriberCount(prev => !newSubscribed ? prev + 1 : Math.max(0, prev - 1));
       alert(error.response?.data?.error || 'Failed to update subscription');
@@ -586,11 +842,29 @@ function Watch() {
             </div>
             <div className="reply-text">{reply.text}</div>
             <div className="reply-actions">
-              <button onClick={() => toggleReplyInput(reply.id)}>Reply</button>
+              <button 
+                onClick={() => handleCommentLike(reply.id)}
+                disabled={typeof reply.id === 'string' && reply.id.startsWith('temp_')}
+              >
+                <MdThumbUp size={16} /> {reply.likes}
+              </button>
+              
+              <button onClick={() => toggleReplyInput(reply.id)}>
+                <MdReply size={16} /> Reply
+              </button>
+
               {user?.id === reply.userId && (
                 <>
-                  <button onClick={() => handleStartEdit(reply.id, reply.text)}>Edit</button>
-                  <button onClick={() => handleDeleteComment(reply.id)}>Delete</button>
+                  <button onClick={() => handleStartEdit(reply.id, reply.text)}>
+                    <MdEdit size={16} /> Edit
+                  </button>
+
+                  <button 
+                    onClick={() => handleDeleteComment(reply.id)}
+                    disabled={typeof reply.id === 'string' && reply.id.startsWith('temp_')}
+                  >
+                    <MdDelete size={16} /> Delete
+                  </button>
                 </>
               )}
             </div>
@@ -613,12 +887,14 @@ function Watch() {
         ))}
       </div>
     );
-  }, [replyText, handleReply, handleStartEdit, handleDeleteComment, toggleReplyInput, showReplyInput, user]);
+  }, [replyText, handleReply, handleStartEdit, handleDeleteComment, toggleReplyInput, showReplyInput, user, handleCommentLike]);
 
-  const sortedComments = [...comments].sort((a, b) => {
-    if (sortType === "top") return b.likes - a.likes;
-    return b.createdAt - a.createdAt;
-  });
+  const sortedComments = useMemo(() => {
+    return [...comments].sort((a, b) => {
+      if (sortType === "top") return b.likes - a.likes;
+      return b.createdAt - a.createdAt;
+    });
+  }, [comments, sortType]);
 
   if (loading) {
     return (
@@ -704,15 +980,20 @@ function Watch() {
               onClick={() => handleVideoReaction("like")}
               className={`action-btn ${reaction === "like" ? "active" : ""}`}
             >
-              👍 {likes}
+              <MdThumbUp size={22} /> {likes}
             </button>
+
             <button
               onClick={() => handleVideoReaction("dislike")}
               className={`action-btn ${reaction === "dislike" ? "active" : ""}`}
             >
-              👎 {dislikes}
+              <MdThumbDown size={22} /> {dislikes}
             </button>
-            <button onClick={handleShare} className="action-btn">🔗 Share</button>
+
+            <button onClick={handleShare} className="action-btn">
+              <MdShare size={22} /> Share
+            </button>
+
             {video.allowDownload && (
               <a
                 href={getDownloadUrl(video.videoUrl)}
@@ -721,7 +1002,7 @@ function Watch() {
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                ⬇️ Download
+                <MdDownload size={22} /> Download
               </a>
             )}
           </div>
@@ -772,9 +1053,9 @@ function Watch() {
                           <button
                             className="comment-submit-btn"
                             onClick={handleAddComment}
-                            disabled={!commentText.trim()}
+                            disabled={!commentText.trim() || isPostingComment}
                           >
-                            Comment
+                            {isPostingComment ? 'Posting...' : 'Comment'}
                           </button>
                         </div>
                       </div>
@@ -830,19 +1111,30 @@ function Watch() {
                                       <button
                                         onClick={() => handleCommentLike(comment.id)}
                                         className="like-btn"
+                                        disabled={typeof comment.id === 'string' && comment.id.startsWith('temp_')}
                                       >
-                                        👍 {comment.likes}
+                                        <MdThumbUp size={18} /> {comment.likes}
                                       </button>
+
                                       <button
                                         onClick={() => toggleReplyInput(comment.id)}
                                         className="reply-btn"
                                       >
-                                        Reply
+                                        <MdReply size={18} /> Reply
                                       </button>
+
                                       {user?.id === comment.userId && (
                                         <>
-                                          <button onClick={() => handleStartEdit(comment.id, comment.text)}>Edit</button>
-                                          <button onClick={() => handleDeleteComment(comment.id)}>Delete</button>
+                                          <button onClick={() => handleStartEdit(comment.id, comment.text)}>
+                                            <MdEdit size={18} /> Edit
+                                          </button>
+
+                                          <button 
+                                            onClick={() => handleDeleteComment(comment.id)}
+                                            disabled={typeof comment.id === 'string' && comment.id.startsWith('temp_')}
+                                          >
+                                            <MdDelete size={18} /> Delete
+                                          </button>
                                         </>
                                       )}
                                     </div>
@@ -871,7 +1163,12 @@ function Watch() {
                                             />
                                             <div className="reply-input-actions">
                                               <button onClick={() => toggleReplyInput(comment.id)}>Cancel</button>
-                                              <button onClick={() => handleReply(comment.id)}>Reply</button>
+                                              <button 
+                                                onClick={() => handleReply(comment.id)}
+                                                disabled={isPostingReply}
+                                              >
+                                                {isPostingReply ? 'Posting...' : 'Reply'}
+                                              </button>
                                             </div>
                                           </div>
                                         </div>
@@ -941,7 +1238,9 @@ function Watch() {
           <div className="share-modal" onClick={(e) => e.stopPropagation()}>
             <div className="share-modal-header">
               <h3>Share Video</h3>
-              <button className="share-modal-close" onClick={closeShareModal}>✕</button>
+              <button className="share-modal-close" onClick={closeShareModal}>
+                <MdClose size={24} />
+              </button>
             </div>
             <div className="share-modal-body">
               <div className="share-link-section">
