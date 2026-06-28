@@ -206,19 +206,22 @@ function Watch() {
       if (video?.id) {
         setCommentsLoading(true);
         try {
-          const response = await commentApi.getComments(video.id);
-          const formattedComments = response.data.map(dbComment => ({
-            id: dbComment.id,
-            text: dbComment.text,
-            user: dbComment.user,
-            userId: dbComment.userId,
-            likes: dbComment.likes || 0,
-            likedBy: dbComment.likedBy || [],
-            replies: dbComment.replies || [],
-            createdAt: new Date(dbComment.createdAt).getTime(),
-            userAvatar: dbComment.user ? getUserAvatar(dbComment.user) : 'G',
-            avatarColor: dbComment.user ? getAvatarColor(dbComment.user) : '#3ea6ff'
-          }));
+  const response = await commentApi.getComments(video.id);
+
+  const formattedComments = response.data.map((dbComment) => ({
+    id: dbComment.id,
+    text: dbComment.text,
+    user: dbComment.user,
+    userId: dbComment.userId,
+    likes: dbComment.likes || 0,
+    likedBy: dbComment.likedBy || [],
+    replies: dbComment.replies || [],
+    createdAt: new Date(dbComment.createdAt).getTime(),
+    userAvatar: dbComment.user ? getUserAvatar(dbComment.user) : "G",
+    avatarColor: dbComment.user
+      ? getAvatarColor(dbComment.user)
+      : "#3ea6ff"
+  }));
           setComments(formattedComments);
         } catch (error) {
           console.error('Error loading comments from database:', error);
@@ -382,113 +385,58 @@ function Watch() {
   // ✅ COMMENT LIKE SYSTEM - CORRECTLY WORKING
   // =============================================
   const handleCommentLike = useCallback(async (commentId) => {
-    // ✅ Skip if it's a temporary comment (not in DB yet)
-    if (typeof commentId === 'string' && commentId.startsWith('temp_')) {
-      return;
-    }
+  if (!user?.id) {
+    alert("Please login");
+    return;
+  }
 
-    if (!user?.id) {
-      alert("Please login to like comments");
-      return;
-    }
+  if (pendingLikes.current.has(commentId)) return;
 
-    if (pendingLikes.current.has(commentId)) {
-      return;
-    }
-    pendingLikes.current.set(commentId, true);
+  pendingLikes.current.set(commentId, true);
 
-    try {
-      let currentLikes = 0;
-      let currentLikedBy = [];
-      let isCurrentlyLiked = false;
+  const previousComments = JSON.parse(JSON.stringify(comments));
+  try {
+    // INSTANT UI UPDATE
+   setComments(prev =>
+  findAndUpdateNode(prev, commentId, node => {
 
-      const findComment = (nodes) => {
-        for (const node of nodes) {
-          if (node.id === commentId) {
-            currentLikes = node.likes || 0;
-            currentLikedBy = node.likedBy || [];
-            isCurrentlyLiked = currentLikedBy.includes(user.id);
-            return true;
-          }
-          if (node.replies && findComment(node.replies)) {
-            return true;
-          }
-        }
-        return false;
-      };
+    console.log(
+      "likes:",
+      node.likes,
+      "likedBy:",
+      node.likedBy,
+      "user:",
+      user.id
+    );
 
-      const commentsCopy = JSON.parse(JSON.stringify(comments));
-      const found = findComment(commentsCopy);
+    const liked = (node.likedBy || []).includes(user.id);
 
-      if (!found) {
-        pendingLikes.current.delete(commentId);
-        return;
-      }
+    console.log("already liked?", liked);
 
-      const newLikedBy = isCurrentlyLiked
-        ? currentLikedBy.filter(id => id !== user.id)
-        : [...currentLikedBy, user.id];
-      
-      const newLikes = isCurrentlyLiked
-        ? Math.max(0, currentLikes - 1)
-        : currentLikes + 1;
+    return {
+      ...node,
+      likes: liked
+        ? Math.max(0, node.likes - 1)
+        : node.likes + 1,
+      likedBy: liked
+        ? node.likedBy.filter(id => id !== user.id)
+        : [...(node.likedBy || []), user.id]
+    };
+  })
+);
 
-      setComments(prevComments => {
-        const updateNode = (nodes) => {
-          return nodes.map(node => {
-            if (node.id === commentId) {
-              return {
-                ...node,
-                likes: newLikes,
-                likedBy: newLikedBy
-              };
-            }
-            if (node.replies) {
-              return {
-                ...node,
-                replies: updateNode(node.replies)
-              };
-            }
-            return node;
-          });
-        };
-        return updateNode(prevComments);
-      });
+    await commentApi.likeComment(commentId);
 
-      await commentApi.likeComment(commentId);
-      
-    } catch (error) {
-      console.error('Error liking comment:', error);
-      
-      setComments(prevComments => {
-        const rollbackNode = (nodes) => {
-          return nodes.map(node => {
-            if (node.id === commentId) {
-              const original = findOriginalNode(prevComments, commentId);
-              return {
-                ...node,
-                likes: original?.likes || 0,
-                likedBy: original?.likedBy || []
-              };
-            }
-            if (node.replies) {
-              return {
-                ...node,
-                replies: rollbackNode(node.replies)
-              };
-            }
-            return node;
-          });
-        };
-        return rollbackNode(prevComments);
-      });
-      
-      alert('Failed to like comment. Please try again.');
-    } finally {
-      pendingLikes.current.delete(commentId);
-    }
-  }, [user, comments, findOriginalNode]);
+  } catch (error) {
+    console.error(error);
 
+    setComments(previousComments);
+
+  } finally {
+    pendingLikes.current.delete(commentId);
+  }
+}, [user, comments, findAndUpdateNode]);
+ 
   // ✅ COMMENT CRUD OPERATIONS
   const handleAddComment = useCallback(async () => {
     if (!commentText.trim() || !user?.id || isPostingComment) {
@@ -598,8 +546,7 @@ function Watch() {
     }
 
     if (!window.confirm("Are you sure you want to delete this comment?")) return;
-    
-    const deletedComment = comments.find(c => c.id === commentId);
+    const deletedComment = findOriginalNode(comments, commentId);
     setComments(prev => findAndDeleteNode(prev, commentId));
 
     try {
@@ -612,7 +559,7 @@ function Watch() {
       }
       alert('Failed to delete comment. Please try again.');
     }
-  }, [findAndDeleteNode, comments]);
+  }, [findAndDeleteNode,findOriginalNode, comments]);
 
   const handleStartEdit = useCallback((commentId, currentText) => {
     setEditingId(commentId);
