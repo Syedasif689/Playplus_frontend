@@ -35,7 +35,7 @@ function App() {
           <Route path="/search" element={<SearchResults />} />
             <Route path="/notifications" element={<Notifications />}/>
           {/* ? 404 Not Found � catch any unknown routes */}
-          <Route path="*" element={<div style={{ color: '#f1f1f1', textAlign: 'center', padding: '60px 20px' }}><h1>404 - Page Not Found</h1><p>The page you're looking for doesn't exist.</p></div>} />
+          <Route path="*" element={<div style={{ color: '#f1f1f1', textAlign: 'center', padding: '60px 20px' }}><h1>404 - Page Not Found</h1><p>The page you're looking for doesn't exist.</p><p>Login again to access the content</p></div>} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
