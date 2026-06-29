@@ -18,6 +18,25 @@ API.interceptors.request.use(
     },
     (error) => Promise.reject(error)
 );
+ API.interceptors.response.use(
+    (response) => response,
+    (error) => {
+
+        if (error.response?.status === 401) {
+
+            console.log("🔒 Session expired. Logging out...");
+
+            localStorage.removeItem("token");
+            localStorage.removeItem("user");
+
+            alert("Your session has expired. Please login again.");
+
+            window.location.href = "/login";
+        }
+
+        return Promise.reject(error);
+    }
+);
 
 // Video API calls
 export const videoApi = {
