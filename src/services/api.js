@@ -18,9 +18,12 @@ API.interceptors.request.use(
     },
     (error) => Promise.reject(error)
 );
- API.interceptors.response.use(
+API.interceptors.response.use(
     (response) => response,
     (error) => {
+
+        console.log(" Interceptor triggered");
+        console.log("Status:", error.response?.status);
 
         if (error.response?.status === 401) {
 
@@ -31,7 +34,7 @@ API.interceptors.request.use(
 
             alert("Your session has expired. Please login again.");
 
-            window.location.href = "/login";
+            window.location.replace("/login");
         }
 
         return Promise.reject(error);
