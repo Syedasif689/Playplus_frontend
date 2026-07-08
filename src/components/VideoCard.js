@@ -1,31 +1,61 @@
 import { Link } from "react-router-dom";
+import "../styles/VideoCard.css";
+import {
+  FaRegThumbsUp,
+  FaRegEye,
+  FaUserCircle,
+  FaCalendarAlt,
+} from "react-icons/fa";
 
-function VideoCard({ id, title, creator, thumbnail, likes, views, uploadedAt }) {
+function VideoCard({
+  id,
+  title,
+  creator,
+  thumbnail,
+  likes,
+  views,
+  uploadedAt,
+}) {
   return (
-    <Link
-      to={`/watch/${id}`}
-      className="video-link"
-    >
+    <Link to={`/watch/${id}`} className="video-link">
       <div className="video-card">
+
         <div className="video-thumbnail">
           <img
-            src={thumbnail || 'https://picsum.photos/300/180'}
+            src={thumbnail || "https://picsum.photos/300/180"}
             alt={title}
+            draggable="false"
           />
-          {views !== undefined && (
-            <div className="video-duration">{views} views</div>
-          )}
+
+          <div className="video-duration">
+            <FaRegEye />
+            <span>{views || 0} views</span>
+          </div>
         </div>
-        
+
         <div className="video-info">
+
           <h3>{title}</h3>
-          <p className="video-creator">{creator || 'Unknown'}</p>
+
+          <div className="video-creator">
+            <FaUserCircle className="creator-icon" />
+            <span>{creator || "Unknown"}</span>
+          </div>
+
           <div className="video-meta">
-            {likes !== undefined && <span>👍 {likes}</span>}
+            <span>
+              <FaRegThumbsUp />
+              {likes || 0}
+            </span>
+
             {uploadedAt && (
-              <span>📅 {new Date(uploadedAt).toLocaleDateString()}</span>
+              <span>
+                <FaCalendarAlt />
+                {new Date(uploadedAt).toLocaleDateString()}
+              </span>
             )}
           </div>
+
         </div>
       </div>
     </Link>

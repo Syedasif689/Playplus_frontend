@@ -140,6 +140,10 @@ function Upload() {
             if (thumbnailFile) {
                 setError('Uploading thumbnail...');
                 thumbnailUrl = await uploadToCloudinary(thumbnailFile, 'image');
+                thumbnailUrl = thumbnailUrl.replace(
+                 "/image/upload/",
+                 "/image/upload/c_fill,g_auto,w_1280,h_720/"
+            );
                 console.log('Thumbnail uploaded:', thumbnailUrl);
             }
 
