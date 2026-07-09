@@ -1,6 +1,6 @@
-/* =========================
-   VIDEO CARD
-========================= */
+/* ============================================
+   VIDEO CARD - MOBILE-FIRST
+   ============================================ */
 
 .video-link {
     text-decoration: none;
@@ -8,113 +8,95 @@
     display: block;
 }
 
-.video-card{
-    width:100%;
-    max-width:340px;
-    background:#181818;
-    border-radius:12px;
-    overflow:hidden;
-    transition:.25s;
-    cursor:pointer;
+.video-card {
+    width: 100%;
+    background: #181818;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    cursor: pointer;
 }
 
-.video-card:hover{
-    transform:translateY(-4px);
-    box-shadow:0 8px 20px rgba(0,0,0,.35);
+/* Only apply hover effects on devices that support hover */
+@media (hover: hover) {
+    .video-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+    }
 }
 
 /* =========================
    THUMBNAIL
-========================= */
+   ========================= */
 .video-thumbnail {
     position: relative;
-    max-width: 100%;
-    height: 220px;
+    width: 100%;
+    aspect-ratio: 16 / 9; /* makes the height automatically scale */
     background: #000;
-
+    overflow: hidden;
     display: flex;
     justify-content: center;
     align-items: center;
-
-    overflow: hidden;
 }
 
 .video-thumbnail img {
-    max-width: 100%;
-    max-height: 100%;
-
-    width: auto;
-    height: auto;
-
-    object-fit: contain;
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* or contain if you prefer, but cover is common */
     display: block;
 }
 
-/* Views Badge */
-
+/* Duration badge */
 .video-duration {
     position: absolute;
     right: 10px;
     bottom: 10px;
-
     display: flex;
     align-items: center;
     gap: 5px;
-
     background: rgba(0, 0, 0, 0.85);
     color: #fff;
-
     padding: 4px 8px;
     border-radius: 5px;
-
     font-size: 12px;
     font-weight: 500;
+    pointer-events: none;
 }
 
 /* =========================
    CONTENT
-========================= */
-
+   ========================= */
 .video-info {
     padding: 12px 14px;
 }
 
-/* Title */
-
-.video-info h3{
-    color:#fff;
-    font-size:16px;
-    font-weight:600;
-    line-height:1.4;
-    margin-bottom:6px;
-
-    display:-webkit-box;
-    -webkit-box-orient:vertical;
-    -webkit-line-clamp:2;
-    overflow:hidden;
-}
-/* =========================
-   CREATOR
-========================= */
-
-.video-creator{
-    display:flex;
-    align-items:center;
-    gap:8px;
-    margin:6px 0;
-    color:#b3b3b3;
+.video-info h3 {
+    color: #fff;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.4;
+    margin: 0 0 6px 0;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
 }
 
-.creator-icon{
-    width:20px;
-    height:20px;
-    flex-shrink:0;
+.video-creator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 6px 0;
+    color: #b3b3b3;
+    font-size: 14px;
 }
 
-
-/* =========================
-   META
-========================= */
+.creator-icon {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    border-radius: 50%;
+}
 
 .video-meta {
     display: flex;
@@ -124,6 +106,7 @@
     color: #909090;
     font-size: 13px;
 }
+
 .video-meta span {
     display: flex;
     align-items: center;
@@ -131,32 +114,68 @@
 }
 
 /* =========================
-   MOBILE
-========================= */
+   RESPONSIVE BREAKPOINTS
+   ========================= */
 
-@media (max-width:768px) {
-
-    .video-card {
-        max-width: 100%;
-    }
-
+/* Small tablets and large phones */
+@media (max-width: 768px) {
     .video-info {
-        padding: 10px;
+        padding: 10px 12px;
     }
-
     .video-info h3 {
         font-size: 15px;
     }
-
     .video-creator {
         font-size: 13px;
     }
-
-    .creator-icon {
-        font-size: 20px;
-    }
-
     .video-meta {
         font-size: 12px;
+        gap: 12px;
+    }
+}
+
+/* Very small phones (<= 480px) */
+@media (max-width: 480px) {
+    .video-card {
+        border-radius: 8px;
+    }
+    .video-info {
+        padding: 8px 10px;
+    }
+    .video-info h3 {
+        font-size: 14px;
+        -webkit-line-clamp: 2; /* keep 2 lines */
+    }
+    .video-creator {
+        font-size: 12px;
+        margin: 4px 0;
+    }
+    .creator-icon {
+        width: 18px;
+        height: 18px;
+    }
+    .video-meta {
+        font-size: 11px;
+        gap: 8px;
+    }
+    .video-duration {
+        font-size: 10px;
+        padding: 2px 6px;
+        right: 6px;
+        bottom: 6px;
+    }
+}
+
+/* Extra small devices (<= 360px) */
+@media (max-width: 360px) {
+    .video-info h3 {
+        font-size: 13px;
+    }
+    .video-creator {
+        font-size: 11px;
+    }
+    .video-meta {
+        font-size: 10px;
+        gap: 6px;
     }
 }
