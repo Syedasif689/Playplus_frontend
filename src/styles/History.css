@@ -5,6 +5,7 @@
     color: #f1f1f1;
 }
 
+/* ----- HEADER ----- */
 .history-header {
     display: flex;
     justify-content: space-between;
@@ -14,7 +15,23 @@
     gap: 12px;
 }
 
+.history-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 24px;
+    margin: 0;
+}
+
+.history-title-icon {
+    color: #fbfdff;
+    font-size: 34px;
+}
+
 .clear-history-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     padding: 8px 20px;
     background: #ff4444;
     border: none;
@@ -29,23 +46,118 @@
     background: #ff6666;
 }
 
+/* ----- GRID ----- */
 .history-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 24px;
 }
 
+/* ----- HISTORY ITEM (each card) ----- */
 .history-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
     position: relative;
 }
 
-.watched-date {
-    display: block;
-    font-size: 12px;
-    color: #888;
-    margin-top: 6px;
+/* ----- VIDEO CARD WRAPPER ----- */
+.history-item-wrapper {
+    position: relative;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #1a1a1a;
 }
 
+/* ----- THREE-DOTS BUTTON (desktop & mobile) ----- */
+.history-item-actions {
+    position: absolute;
+    top: 230px;           /* adjust this value to align with your title */
+    right: 12px;
+    z-index: 10;
+}
+
+.more-btn {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: rgba(20, 20, 20, 0.9);
+    border: 2px solid rgba(34, 29, 29, 0.9);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.8);
+}
+
+.more-btn svg {
+    font-size: 32px;
+    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.9));
+}
+
+.more-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: #fff;
+    transform: scale(1.08);
+}
+
+/* Dropdown menu */
+.dropdown-menu {
+    position: absolute;
+    top: 52px;
+    right: 0;
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 4px 0;
+    min-width: 140px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 16px;
+    background: transparent;
+    border: none;
+    color: #f1f1f1;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+    width: 100%;
+    text-align: left;
+}
+
+.dropdown-item:hover {
+    background: #f19595;
+}
+
+.dropdown-item svg {
+    flex-shrink: 0;
+}
+
+/* ----- WATCHED DATE ----- */
+.watched-date {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #aaa;
+    font-size: 13px;
+    padding: 0 4px;
+}
+
+.watched-date svg {
+    color: #6c97e6;
+    font-size: 16px;
+}
+
+/* ----- ERROR MESSAGE ----- */
 .history-error {
     background: rgba(255, 68, 68, 0.1);
     border: 1px solid #ff4444;
@@ -55,9 +167,21 @@
     margin-bottom: 16px;
 }
 
+/* ----- EMPTY STATE ----- */
 .no-history {
     text-align: center;
     padding: 60px 20px;
+}
+
+.no-history-icon {
+    font-size: 72px;
+    color: #777;
+    margin-bottom: 20px;
+}
+
+.no-history-icon svg {
+    display: block;
+    margin: auto;
 }
 
 .no-history .browse-btn {
@@ -71,9 +195,63 @@
     font-weight: 600;
 }
 
+/* ===== RESPONSIVE ===== */
 @media (max-width: 768px) {
+    .history-container {
+        padding: 16px;
+    }
+
+    .history-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .clear-history-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
     .history-grid {
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-        gap: 16px;
+        grid-template-columns: 1fr;
+        gap: 18px;
+    }
+
+    /* Mobile: same size as desktop so it's large enough to tap */
+    .more-btn {
+        width: 48px;
+        height: 48px;
+    }
+
+    .more-btn svg {
+        font-size: 32px;
+    }
+
+    .history-item-actions {
+        top: 230px;          /* keep the same alignment */
+        right: 10px;
+    }
+
+    .dropdown-menu {
+        top: 52px;           /* match the button height */
+        min-width: 120px;
+        right: -4px;
+    }
+
+    .dropdown-item {
+        font-size: 13px;
+        padding: 6px 14px;
+        gap: 8px;
+    }
+
+    .watched-date {
+        font-size: 12px;
+    }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+    .history-grid {
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 20px;
     }
 }

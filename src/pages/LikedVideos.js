@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { userApi } from '../services/api';
 import VideoCard from '../components/VideoCard';
 import '../styles/LikedVideos.css';
+import { MdFavorite, MdFavoriteBorder } from "react-icons/md";
 
 function LikedVideos() {
     const { user } = useAuth();
@@ -44,14 +45,20 @@ function LikedVideos() {
     return (
         <div className="liked-container">
             <div className="liked-header">
-                <h1>❤️ Liked Videos</h1>
+                <h1 className="liked-title">
+                <MdFavorite className="liked-title-icon" />
+                 Liked Videos
+                </h1>
                 <span className="liked-count">{videos.length} videos</span>
             </div>
             {error && <div className="liked-error">{error}</div>}
             {videos.length === 0 ? (
                 <div className="no-liked">
-                    <p>You haven't liked any videos yet.</p>
-                    <Link to="/" className="browse-btn">Browse Videos</Link>
+                   <div className="no-liked-icon">
+                     <MdFavoriteBorder />
+                    </div>
+                     <p>You haven't liked any videos yet.</p>
+                  <Link to="/" className="browse-btn">Browse Videos</Link>
                 </div>
             ) : (
                 <div className="liked-grid">

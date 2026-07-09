@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useMemo, useRef } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import defaultVideos from "../data/videos";
 import "../styles/watch.css";
 import { videoApi, commentApi, channelApi } from '../services/api';
@@ -19,6 +19,7 @@ import {
 function Watch() {
   const { user } = useAuth();
   const { id } = useParams();
+  const navigate = useNavigate();
 
   // UI States
   const [showFullDescription, setShowFullDescription] = useState(false);
@@ -27,6 +28,7 @@ function Watch() {
   const [replyText, setReplyText] = useState({});
   const [commentText, setCommentText] = useState("");
   const [editingId, setEditingId] = useState(null);
+  const [editingParentId, setEditingParentId] = useState(null);
   const [editText, setEditText] = useState("");
   const [showReplyInput, setShowReplyInput] = useState({});
   const [showRepliesFor, setShowRepliesFor] = useState({});
@@ -34,6 +36,7 @@ function Watch() {
   // Video state
   const [video, setVideo] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [videoError, setVideoError] = useState(false);
 
   // Video Stats
   const [likes, setLikes] = useState(0);
@@ -51,6 +54,11 @@ function Watch() {
   // Related videos (from backend)
   const [relatedVideos, setRelatedVideos] = useState([]);
   
+  // Navigation - History management
+  const [history, setHistory] = useState([]);
+  const [currentIndex, setCurrentIndex] = useState(-1);
+  const isNavigating = useRef(false);
+  
   // Share states
   const [showShareModal, setShowShareModal] = useState(false);
   const [shareCopied, setShareCopied] = useState(false);
@@ -66,6 +74,7 @@ function Watch() {
   const [isPostingComment, setIsPostingComment] = useState(false);
   const [isPostingReply, setIsPostingReply] = useState(false);
   const [isReacting, setIsReacting] = useState(false);
+  const [isEditingComment, setIsEditingComment] = useState(false);
   
   // Ref to track pending like requests
   const pendingLikes = useRef(new Map());
@@ -82,10 +91,97 @@ function Watch() {
     return url;
   };
 
+  // Add video to history
+  const addToHistory = useCallback((videoId) => {
+    setHistory(prev => {
+      if (isNavigating.current) {
+        return prev;
+      }
+      
+      const existingIndex = prev.indexOf(videoId);
+      
+      if (existingIndex !== -1) {
+        const newHistory = [...prev];
+        newHistory.splice(existingIndex, 1);
+        newHistory.push(videoId);
+        setCurrentIndex(newHistory.length - 1);
+        return newHistory;
+      }
+      
+      if (currentIndex !== -1 && currentIndex < prev.length - 1) {
+        const newHistory = prev.slice(0, currentIndex + 1);
+        newHistory.push(videoId);
+        setCurrentIndex(newHistory.length - 1);
+        return newHistory;
+      }
+      
+      const newHistory = [...prev, videoId];
+      setCurrentIndex(newHistory.length - 1);
+      return newHistory;
+    });
+  }, [currentIndex]);
+
+  const navigateToVideo = useCallback((videoId, addToHistoryFlag = true) => {
+    if (!videoId) return;
+    if (videoId === id) return;
+    
+    if (!addToHistoryFlag) {
+      isNavigating.current = true;
+    }
+    
+    navigate(`/watch/${videoId}`);
+    window.scrollTo(0, 0);
+    
+    setTimeout(() => {
+      isNavigating.current = false;
+    }, 100);
+  }, [navigate, id]);
+
+  const getNextFromRelated = useCallback(() => {
+    const relatedIndex = relatedVideos.findIndex(v => v.id === video?.id);
+    if (relatedIndex < relatedVideos.length - 1 && relatedVideos[relatedIndex + 1]) {
+      return relatedVideos[relatedIndex + 1];
+    }
+    return null;
+  }, [relatedVideos, video]);
+
+  const getPreviousFromRelated = useCallback(() => {
+    const relatedIndex = relatedVideos.findIndex(v => v.id === video?.id);
+    if (relatedIndex > 0 && relatedVideos[relatedIndex - 1]) {
+      return relatedVideos[relatedIndex - 1];
+    }
+    return null;
+  }, [relatedVideos, video]);
+
+  const handlePreviousVideo = useCallback(() => {
+    if (currentIndex > 0) {
+      const prevVideoId = history[currentIndex - 1];
+      navigateToVideo(prevVideoId, false);
+      return;
+    }
+    const prevRelated = getPreviousFromRelated();
+    if (prevRelated) {
+      navigateToVideo(prevRelated.id, true);
+    }
+  }, [currentIndex, history, navigateToVideo, getPreviousFromRelated]);
+
+  const handleNextVideo = useCallback(() => {
+    if (currentIndex < history.length - 1) {
+      const nextVideoId = history[currentIndex + 1];
+      navigateToVideo(nextVideoId, false);
+      return;
+    }
+    const nextRelated = getNextFromRelated();
+    if (nextRelated) {
+      navigateToVideo(nextRelated.id, true);
+    }
+  }, [currentIndex, history, navigateToVideo, getNextFromRelated]);
+
   // Load video from database or fallback to local
   useEffect(() => {
     const loadVideo = async () => {
       setLoading(true);
+      setVideoError(false);
       try {
         const response = await videoApi.getVideo(id);
         if (response.data) {
@@ -107,6 +203,12 @@ function Watch() {
           }
           
           await loadRelatedVideos(response.data);
+          
+          if (!isNavigating.current) {
+            addToHistory(id);
+          } else {
+            isNavigating.current = false;
+          }
         }
       } catch (error) {
         console.log("Video not in database, using local data");
@@ -116,6 +218,14 @@ function Watch() {
           setLikes(localVideo.likes || 120);
           setDislikes(localVideo.dislikes || 5);
           setViews(localVideo.views || 0);
+          
+          if (!isNavigating.current) {
+            addToHistory(id);
+          } else {
+            isNavigating.current = false;
+          }
+        } else {
+          setVideoError(true);
         }
       }
       setLoading(false);
@@ -127,7 +237,6 @@ function Watch() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  // Load related videos from backend
   const loadRelatedVideos = useCallback(async (currentVideo) => {
     try {
       const response = await videoApi.getAll();
@@ -156,15 +265,13 @@ function Watch() {
     }
   }, [id]);
 
-  // Reset viewTracked when video changes
   useEffect(() => {
     setViewTracked(false);
   }, [video?.id]);
 
-  // Track view after video loads
   useEffect(() => {
     const trackView = async () => {
-      if (video?.id && !viewTracked) {
+      if (video?.id && !viewTracked && !videoError) {
         try {
           const response = await videoApi.trackView(video.id);
           if (response.data && response.data.views !== undefined) {
@@ -181,12 +288,11 @@ function Watch() {
       trackView();
     }, 1000);
     return () => clearTimeout(timeoutId);
-  }, [video?.id, viewTracked]);
+  }, [video?.id, viewTracked, videoError]);
 
-  // Load user reaction
   useEffect(() => {
     const loadReaction = async () => {
-      if (user?.id && video?.id) {
+      if (user?.id && video?.id && !videoError) {
         try {
           const response = await videoApi.getReaction(video.id);
           setReaction(response.data.reaction);
@@ -198,30 +304,29 @@ function Watch() {
     if (video?.id) {
       loadReaction();
     }
-  }, [user, video?.id]);
+  }, [user, video?.id, videoError]);
 
-  // Load comments from database
   useEffect(() => {
     const loadComments = async () => {
-      if (video?.id) {
+      if (video?.id && !videoError) {
         setCommentsLoading(true);
         try {
-  const response = await commentApi.getComments(video.id);
+          const response = await commentApi.getComments(video.id);
 
-  const formattedComments = response.data.map((dbComment) => ({
-    id: dbComment.id,
-    text: dbComment.text,
-    user: dbComment.user,
-    userId: dbComment.userId,
-    likes: dbComment.likes || 0,
-    likedBy: dbComment.likedBy || [],
-    replies: dbComment.replies || [],
-    createdAt: new Date(dbComment.createdAt).getTime(),
-    userAvatar: dbComment.user ? getUserAvatar(dbComment.user) : "G",
-    avatarColor: dbComment.user
-      ? getAvatarColor(dbComment.user)
-      : "#3ea6ff"
-  }));
+          const formattedComments = response.data.map((dbComment) => ({
+            id: dbComment.id,
+            text: dbComment.text,
+            user: dbComment.user,
+            userId: dbComment.userId,
+            likes: dbComment.likes || 0,
+            likedBy: dbComment.likedBy || [],
+            replies: dbComment.replies || [],
+            createdAt: new Date(dbComment.createdAt).getTime(),
+            userAvatar: dbComment.user ? getUserAvatar(dbComment.user) : "G",
+            avatarColor: dbComment.user
+              ? getAvatarColor(dbComment.user)
+              : "#3ea6ff"
+          }));
           setComments(formattedComments);
         } catch (error) {
           console.error('Error loading comments from database:', error);
@@ -234,9 +339,8 @@ function Watch() {
       }
     };
     loadComments();
-  }, [video?.id, id]);
+  }, [video?.id, id, videoError]);
 
-  // Save comments to localStorage as backup
   useEffect(() => {
     if (id && comments.length > 0) {
       localStorage.setItem(`comments_${id}`, JSON.stringify(comments));
@@ -247,7 +351,6 @@ function Watch() {
     window.scrollTo(0, 0);
   }, [id]);
 
-  // Helper functions
   const findAndUpdateNode = useCallback((nodes, targetId, updateFn) => {
     return nodes.map(node => {
       if (node.id === targetId) {
@@ -301,13 +404,11 @@ function Watch() {
     return null;
   }, []);
 
-  // Get user avatar
   const getUserAvatar = (username) => {
     if (!username) return 'G';
     return username.charAt(0).toUpperCase();
   };
 
-  // Get user avatar color
   const getAvatarColor = (username) => {
     if (!username) return '#3ea6ff';
     const colors = ['#3ea6ff', '#ff6b6b', '#ffd93d', '#6bcb77', '#4d96ff', '#ff6bff', '#ff9f43', '#00d2d3'];
@@ -318,7 +419,6 @@ function Watch() {
     return colors[Math.abs(hash) % colors.length];
   };
 
-  // Format number
   const formatNumber = useCallback((count) => {
     if (!count) return '0';
     if (count >= 1000000) return (count / 1000000).toFixed(1) + 'M';
@@ -381,63 +481,45 @@ function Watch() {
     setShareCopied(false);
   };
 
-  // =============================================
-  // ✅ COMMENT LIKE SYSTEM - CORRECTLY WORKING
-  // =============================================
+  // COMMENT LIKE SYSTEM
   const handleCommentLike = useCallback(async (commentId) => {
-  if (!user?.id) {
-    alert("Please login");
-    return;
-  }
+    if (!user?.id) {
+      alert("Please login");
+      return;
+    }
 
-  if (pendingLikes.current.has(commentId)) return;
+    if (pendingLikes.current.has(commentId)) return;
 
-  pendingLikes.current.set(commentId, true);
+    pendingLikes.current.set(commentId, true);
 
-  const previousComments = JSON.parse(JSON.stringify(comments));
-  try {
-    // INSTANT UI UPDATE
-   setComments(prev =>
-  findAndUpdateNode(prev, commentId, node => {
+    const previousComments = JSON.parse(JSON.stringify(comments));
+    try {
+      setComments(prev =>
+        findAndUpdateNode(prev, commentId, node => {
+          const liked = (node.likedBy || []).includes(user.id);
+          return {
+            ...node,
+            likes: liked
+              ? Math.max(0, node.likes - 1)
+              : node.likes + 1,
+            likedBy: liked
+              ? node.likedBy.filter(id => id !== user.id)
+              : [...(node.likedBy || []), user.id]
+          };
+        })
+      );
 
-    console.log(
-      "likes:",
-      node.likes,
-      "likedBy:",
-      node.likedBy,
-      "user:",
-      user.id
-    );
+      await commentApi.likeComment(commentId);
 
-    const liked = (node.likedBy || []).includes(user.id);
+    } catch (error) {
+      console.error(error);
+      setComments(previousComments);
+    } finally {
+      pendingLikes.current.delete(commentId);
+    }
+  }, [user, comments, findAndUpdateNode]);
 
-    console.log("already liked?", liked);
-
-    return {
-      ...node,
-      likes: liked
-        ? Math.max(0, node.likes - 1)
-        : node.likes + 1,
-      likedBy: liked
-        ? node.likedBy.filter(id => id !== user.id)
-        : [...(node.likedBy || []), user.id]
-    };
-  })
-);
-
-    await commentApi.likeComment(commentId);
-
-  } catch (error) {
-    console.error(error);
-
-    setComments(previousComments);
-
-  } finally {
-    pendingLikes.current.delete(commentId);
-  }
-}, [user, comments, findAndUpdateNode]);
- 
-  // ✅ COMMENT CRUD OPERATIONS
+  // COMMENT CRUD OPERATIONS
   const handleAddComment = useCallback(async () => {
     if (!commentText.trim() || !user?.id || isPostingComment) {
       if (!user?.id) alert("Please login to comment");
@@ -497,7 +579,7 @@ function Watch() {
   }, [commentText, user, video?.id, isPostingComment]);
 
   const handleEditComment = useCallback(async () => {
-    if (!editText.trim() || !editingId) return;
+    if (!editText.trim() || !editingId || isEditingComment) return;
 
     const commentId = editingId;
     const newText = editText.trim();
@@ -523,7 +605,9 @@ function Watch() {
     });
     
     setEditingId(null);
+    setEditingParentId(null);
     setEditText("");
+    setIsEditingComment(true);
 
     try {
       await commentApi.updateComment(commentId, newText);
@@ -534,12 +618,12 @@ function Watch() {
         text: originalText
       })));
       alert('Failed to update comment. Please try again.');
+    } finally {
+      setIsEditingComment(false);
     }
-  }, [editText, editingId, findAndUpdateNode]);
+  }, [editText, editingId, findAndUpdateNode, isEditingComment]);
 
-  // ✅ FIXED: handleDeleteComment - Skip temporary comments
   const handleDeleteComment = useCallback(async (commentId) => {
-    // ✅ Skip if it's a temporary comment (not in DB yet)
     if (typeof commentId === 'string' && commentId.startsWith('temp_')) {
       alert('Please wait for the comment to be posted before deleting.');
       return;
@@ -559,15 +643,22 @@ function Watch() {
       }
       alert('Failed to delete comment. Please try again.');
     }
-  }, [findAndDeleteNode,findOriginalNode, comments]);
+  }, [findAndDeleteNode, findOriginalNode, comments]);
 
-  const handleStartEdit = useCallback((commentId, currentText) => {
+  const handleStartEdit = useCallback((commentId, currentText, parentId = null, e) => {
+    if (e) {
+      e.stopPropagation();
+    }
+    
     setEditingId(commentId);
+    setEditingParentId(parentId);
     setEditText(currentText);
+    setShowReplyInput({});
   }, []);
 
   const handleCancelEdit = useCallback(() => {
     setEditingId(null);
+    setEditingParentId(null);
     setEditText("");
   }, []);
 
@@ -664,68 +755,70 @@ function Watch() {
 
   const toggleReplyInput = useCallback((id) => {
     setShowReplyInput(prev => ({ ...prev, [id]: !prev[id] }));
-  }, []);
+    if (editingId) {
+      setEditingId(null);
+      setEditingParentId(null);
+      setEditText("");
+    }
+  }, [editingId]);
 
   const toggleRepliesVisibility = useCallback((commentId) => {
     setShowRepliesFor(prev => ({ ...prev, [commentId]: !prev[commentId] }));
   }, []);
 
-  // =============================================
-// ✅ VIDEO LIKE/DISLIKE - OPTIMISTIC UI
-// =============================================
-const handleVideoReaction = async (type) => {
-  if (!user?.id) {
-    alert("Login required");
-    return;
-  }
+  // VIDEO LIKE/DISLIKE
+  const handleVideoReaction = async (type) => {
+    if (!user?.id) {
+      alert("Login required");
+      return;
+    }
 
-  if (isReacting) return;
+    if (isReacting) return;
 
-  setIsReacting(true);
+    setIsReacting(true);
 
-  const oldReaction = reaction;
+    const oldReaction = reaction;
 
-  try {
-    if (oldReaction === type) {
-      // Remove reaction
-      setReaction(null);
+    try {
+      if (oldReaction === type) {
+        setReaction(null);
 
-      if (type === "like") {
-        setLikes(prev => Math.max(0, prev - 1));
-      } else {
-        setDislikes(prev => Math.max(0, prev - 1));
-      }
-    } else {
-      // Switch reaction
-      setReaction(type);
-
-      if (type === "like") {
-        setLikes(prev => prev + 1);
-
-        if (oldReaction === "dislike") {
+        if (type === "like") {
+          setLikes(prev => Math.max(0, prev - 1));
+        } else {
           setDislikes(prev => Math.max(0, prev - 1));
         }
       } else {
-        setDislikes(prev => prev + 1);
+        setReaction(type);
 
-        if (oldReaction === "like") {
-          setLikes(prev => Math.max(0, prev - 1));
+        if (type === "like") {
+          setLikes(prev => prev + 1);
+
+          if (oldReaction === "dislike") {
+            setDislikes(prev => Math.max(0, prev - 1));
+          }
+        } else {
+          setDislikes(prev => prev + 1);
+
+          if (oldReaction === "like") {
+            setLikes(prev => Math.max(0, prev - 1));
+          }
         }
       }
-    }
 
-    if (type === "like") {
-      await videoApi.like(video.id);
-    } else {
-      await videoApi.dislike(video.id);
-    }
+      if (type === "like") {
+        await videoApi.like(video.id);
+      } else {
+        await videoApi.dislike(video.id);
+      }
 
-  } catch (error) {
-    console.error(error);
-  } finally {
-    setIsReacting(false);
-  }
-};
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsReacting(false);
+    }
+  };
+
   // SUBSCRIBE HANDLER
   const handleSubscribe = async () => {
     if (!user) {
@@ -772,69 +865,119 @@ const handleVideoReaction = async (type) => {
     return count;
   }, []);
 
-  const renderReplies = useCallback((replies, depth = 0) => {
+  const renderReplies = useCallback((replies, depth = 0, parentId = null) => {
     if (!replies || replies.length === 0) return null;
     return (
       <div className={`replies-section depth-${Math.min(depth, 3)}`}>
-        {replies.map(reply => (
-          <div key={reply.id} className="reply-item">
-            <div className="reply-header">
-              <div className="reply-avatar-small" style={{ backgroundColor: reply.avatarColor || '#3ea6ff' }}>
-                {reply.userAvatar || reply.user?.charAt(0).toUpperCase() || 'G'}
+        {replies.map(reply => {
+          const isEditing = editingId === reply.id && editingParentId === parentId;
+          
+          return (
+            <div key={reply.id} className="reply-item">
+              <div className="reply-header">
+                <div className="reply-avatar-small" style={{ backgroundColor: reply.avatarColor || '#3ea6ff' }}>
+                  {reply.userAvatar || reply.user?.charAt(0).toUpperCase() || 'G'}
+                </div>
+                <strong>{reply.user}</strong>
+                <span className="reply-date">
+                  {new Date(reply.createdAt).toLocaleDateString()}
+                </span>
               </div>
-              <strong>{reply.user}</strong>
-              <span className="reply-date">
-                {new Date(reply.createdAt).toLocaleDateString()}
-              </span>
-            </div>
-            <div className="reply-text">{reply.text}</div>
-            <div className="reply-actions">
-              <button 
-                onClick={() => handleCommentLike(reply.id)}
-                disabled={typeof reply.id === 'string' && reply.id.startsWith('temp_')}
-              >
-                <MdThumbUp size={16} /> {reply.likes}
-              </button>
               
-              <button onClick={() => toggleReplyInput(reply.id)}>
-                <MdReply size={16} /> Reply
-              </button>
-
-              {user?.id === reply.userId && (
-                <>
-                  <button onClick={() => handleStartEdit(reply.id, reply.text)}>
-                    <MdEdit size={16} /> Edit
-                  </button>
-
+              {isEditing ? (
+                <div className="edit-comment">
+                  <input
+                    type="text"
+                    value={editText}
+                    onChange={(e) => setEditText(e.target.value)}
+                    onKeyPress={(e) => e.key === "Enter" && handleEditComment()}
+                    autoFocus
+                  />
                   <button 
-                    onClick={() => handleDeleteComment(reply.id)}
-                    disabled={typeof reply.id === 'string' && reply.id.startsWith('temp_')}
+                    onClick={handleEditComment}
+                    disabled={isEditingComment || !editText.trim()}
                   >
-                    <MdDelete size={16} /> Delete
+                    {isEditingComment ? 'Saving...' : 'Save'}
                   </button>
+                  <button 
+                    onClick={handleCancelEdit}
+                    disabled={isEditingComment}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <div className="reply-text">{reply.text}</div>
+                  <div className="reply-actions">
+                    <button 
+                      onClick={() => handleCommentLike(reply.id)}
+                      disabled={typeof reply.id === 'string' && reply.id.startsWith('temp_')}
+                    >
+                      <MdThumbUp size={16} /> {reply.likes}
+                    </button>
+                    
+                    <button onClick={() => toggleReplyInput(reply.id)}>
+                      <MdReply size={16} /> Reply
+                    </button>
+
+                    {user?.id === reply.userId && (
+                      <>
+                        <button 
+                          onClick={(e) => handleStartEdit(reply.id, reply.text, parentId, e)}
+                          disabled={isEditingComment}
+                        >
+                          <MdEdit size={16} /> Edit
+                        </button>
+
+                        <button 
+                          onClick={() => handleDeleteComment(reply.id)}
+                          disabled={typeof reply.id === 'string' && reply.id.startsWith('temp_')}
+                        >
+                          <MdDelete size={16} /> Delete
+                        </button>
+                      </>
+                    )}
+                  </div>
                 </>
               )}
+              
+              {showReplyInput[reply.id] && (
+                <div className="reply-input-form">
+                  <input
+                    type="text"
+                    placeholder="Write a reply..."
+                    value={replyText[reply.id] || ""}
+                    onChange={(e) => setReplyText(prev => ({ ...prev, [reply.id]: e.target.value }))}
+                    onKeyPress={(e) => e.key === "Enter" && handleReply(reply.id)}
+                    autoFocus
+                  />
+                  <button onClick={() => handleReply(reply.id)}>Reply</button>
+                  <button onClick={() => toggleReplyInput(reply.id)}>Cancel</button>
+                </div>
+              )}
+              {reply.replies && reply.replies.length > 0 && renderReplies(reply.replies, depth + 1, reply.id)}
             </div>
-            {showReplyInput[reply.id] && (
-              <div className="reply-input-form">
-                <input
-                  type="text"
-                  placeholder="Write a reply..."
-                  value={replyText[reply.id] || ""}
-                  onChange={(e) => setReplyText(prev => ({ ...prev, [reply.id]: e.target.value }))}
-                  onKeyPress={(e) => e.key === "Enter" && handleReply(reply.id)}
-                  autoFocus
-                />
-                <button onClick={() => handleReply(reply.id)}>Reply</button>
-                <button onClick={() => toggleReplyInput(reply.id)}>Cancel</button>
-              </div>
-            )}
-            {reply.replies && reply.replies.length > 0 && renderReplies(reply.replies, depth + 1)}
-          </div>
-        ))}
+          );
+        })}
       </div>
     );
-  }, [replyText, handleReply, handleStartEdit, handleDeleteComment, toggleReplyInput, showReplyInput, user, handleCommentLike]);
+  }, [
+    editingId,
+    editingParentId,
+    editText,
+    handleEditComment,
+    isEditingComment,
+    handleCancelEdit,
+    handleCommentLike,
+    toggleReplyInput,
+    replyText,
+    handleReply,
+    handleStartEdit,
+    handleDeleteComment,
+    user,
+    showReplyInput
+  ]);
 
   const sortedComments = useMemo(() => {
     return [...comments].sort((a, b) => {
@@ -847,35 +990,54 @@ const handleVideoReaction = async (type) => {
     return (
       <div className="watch-layout">
         <div className="main-content">
-          <h2>Loading video...</h2>
+          <div className="loading-container">
+            <div className="loading-spinner"></div>
+            <p>Loading video...</p>
+          </div>
         </div>
       </div>
     );
   }
 
-  if (!video) {
+  if (!video || videoError) {
     return (
       <div className="watch-layout">
         <div className="main-content">
-          <h2>Video not found</h2>
-          <Link to="/">Go back home</Link>
+          <div className="error-container">
+            <h2>Video not found</h2>
+            <p>The video you're looking for doesn't exist or has been removed.</p>
+            <Link to="/" className="back-home-btn">Go back home</Link>
+          </div>
         </div>
       </div>
     );
   }
 
+  const hasPrevious = currentIndex > 0 || 
+                      relatedVideos.findIndex(v => v.id === video.id) > 0;
+  
+  const hasNext = currentIndex < history.length - 1 ||
+                  relatedVideos.findIndex(v => v.id === video.id) < relatedVideos.length - 1;
+
   return (
     <div className="watch-layout">
-      {/* LEFT SIDE - MAIN CONTENT */}
       <div className="main-content">
         <div className="sticky-video-container">
-          <VideoPlayer src={video.videoUrl} title={video.title} />
+          <VideoPlayer 
+            src={video.videoUrl} 
+            title={video.title} 
+            key={video.id}
+            onPrevious={handlePreviousVideo}
+            onNext={handleNextVideo}
+            hasPrevious={hasPrevious}
+            hasNext={hasNext}
+          />
         </div>
 
         <div className="scrollable-content">
-          {/* Video Title with Views */}
-          <div className="video-header">
-            <h2>{video.title}</h2>
+          {/* Video Title with Views - fixed: added margin-top to push it down */}
+          <div className="video-header" style={{ marginTop: '20px' }}>
+            <h2 style={{ color: '#f1f1f1' }}>{video.title || 'Untitled Video'}</h2>
             <p className="video-views">{formatViews(views)} views</p>
           </div>
 
@@ -892,7 +1054,9 @@ const handleVideoReaction = async (type) => {
                     </div>
                   )}
                 </div>
-                <span className="channel-name">{video.creator}</span>
+                <span className="channel-name">
+                  {creatorInfo?.name || video.creator || 'Unknown Channel'}
+                </span>
               </Link>
               {!isOwnChannel && (
                 <span className="subscriber-count">{formatSubscriberCount(subscriberCount)} subscribers</span>
@@ -992,15 +1156,16 @@ const handleVideoReaction = async (type) => {
                           type="text"
                           value={commentText}
                           onChange={(e) => setCommentText(e.target.value)}
-                          placeholder="Add a comment..."
+                          placeholder={user ? "Add a comment..." : "Please login to comment"}
                           onKeyPress={(e) => e.key === "Enter" && handleAddComment()}
+                          disabled={!user}
                         />
                         <div className="comment-input-actions">
                           <button className="cancel-btn" onClick={() => setCommentText("")}>Cancel</button>
                           <button
                             className="comment-submit-btn"
                             onClick={handleAddComment}
-                            disabled={!commentText.trim() || isPostingComment}
+                            disabled={!commentText.trim() || isPostingComment || !user}
                           >
                             {isPostingComment ? 'Posting...' : 'Comment'}
                           </button>
@@ -1018,6 +1183,7 @@ const handleVideoReaction = async (type) => {
                           const replyCount = countReplies(comment.replies);
                           const hasReplies = replyCount > 0;
                           const showReplies = showRepliesFor[comment.id] || false;
+                          const isEditing = editingId === comment.id && editingParentId === null;
 
                           return (
                             <div key={comment.id} className="comment-card-item">
@@ -1039,7 +1205,7 @@ const handleVideoReaction = async (type) => {
                                   </span>
                                 </div>
 
-                                {editingId === comment.id ? (
+                                {isEditing ? (
                                   <div className="edit-comment">
                                     <input
                                       type="text"
@@ -1048,8 +1214,18 @@ const handleVideoReaction = async (type) => {
                                       onKeyPress={(e) => e.key === "Enter" && handleEditComment()}
                                       autoFocus
                                     />
-                                    <button onClick={handleEditComment}>Save</button>
-                                    <button onClick={handleCancelEdit}>Cancel</button>
+                                    <button 
+                                      onClick={handleEditComment}
+                                      disabled={isEditingComment || !editText.trim()}
+                                    >
+                                      {isEditingComment ? 'Saving...' : 'Save'}
+                                    </button>
+                                    <button 
+                                      onClick={handleCancelEdit}
+                                      disabled={isEditingComment}
+                                    >
+                                      Cancel
+                                    </button>
                                   </div>
                                 ) : (
                                   <>
@@ -1072,7 +1248,10 @@ const handleVideoReaction = async (type) => {
 
                                       {user?.id === comment.userId && (
                                         <>
-                                          <button onClick={() => handleStartEdit(comment.id, comment.text)}>
+                                          <button 
+                                            onClick={(e) => handleStartEdit(comment.id, comment.text, null, e)}
+                                            disabled={isEditingComment}
+                                          >
                                             <MdEdit size={18} /> Edit
                                           </button>
 
@@ -1135,7 +1314,7 @@ const handleVideoReaction = async (type) => {
 
                                     {hasReplies && showReplies && (
                                       <div className="replies-container">
-                                        {comment.replies && comment.replies.length > 0 && renderReplies(comment.replies, 0)}
+                                        {comment.replies && comment.replies.length > 0 && renderReplies(comment.replies, 0, comment.id)}
                                       </div>
                                     )}
                                   </>

@@ -160,54 +160,53 @@ body {
 
 /* ===== VIDEO TITLE & METADATA ===== */
 .video-header {
-    margin-top: 12px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
 }
 
 .video-header h2 {
-    font-size: 20px;
-    font-weight: 600;
-    line-height: 1.4;
-    color: var(--text-primary);
-    margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #0f0f0f;
+  margin: 0;
+  flex: 1;
+  line-height: 1.4;
+  word-wrap: break-word;
 }
 
-.video-views {
-    color: var(--text-dim);
-    font-size: 14px;
-    margin-top: 5px;
-    
-    
-}
+
 
 /* ===== CHANNEL INFO ROW ===== */
 .channel-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 12px;
-    margin: 12px 0 16px 0;
-    padding: 8px 0;
-    border-bottom: 1px solid var(--border-color);
-    padding-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-top: 1px solid #e5e5e5;
+  border-bottom: 1px solid #e5e5e5;
+  margin: 8px 0 12px 0;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 .channel-avatar-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 200px;
 }
 
 .channel-link {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    text-decoration: none;
-    color: var(--text-primary);
-    font-size: 15px;
-    font-weight: 500;
-    transition: var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  color: inherit;
 }
 
 .channel-link:hover {
@@ -215,17 +214,14 @@ body {
 }
 
 .channel-avatar-small {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    overflow: hidden;
-    background: var(--accent);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    transition: var(--transition);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: #e5e5e5;
 }
+
 
 .channel-avatar-small img {
     width: 100%;
@@ -234,66 +230,67 @@ body {
 }
 
 .avatar-initial {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
-    font-weight: 600;
-    color: var(--bg-primary);
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
 }
 
 .channel-name {
-    font-weight: 500;
-    font-size: 15px;
-    white-space: nowrap;
+  font-size: 15px;
+  font-weight: 500;
+  color: #e2dbdb;
+  white-space: nowrap;
 }
-
+.channel-name:hover {
+  color: #065fd4;
+}
 .subscriber-count {
-    font-size: 13px;
-    color: var(--text-muted);
-    white-space: nowrap;
+  font-size: 13px;
+  color: #606060;
+  white-space: nowrap;
 }
 
 /* ===== SUBSCRIBE BUTTON ===== */
 .subscribe-btn {
-    padding: 10px 24px;
-    border: none;
-    border-radius: var(--radius-full);
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: var(--transition);
-    background: #ff0000;
-    color: white;
-    white-space: nowrap;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: #cc0000;
+  color: #fff;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
-.subscribe-btn:hover:not(:disabled):not(.own-channel) {
-    background: #cc0000;
-    transform: scale(1.02);
-}
 
+.subscribe-btn:hover:not(:disabled) {
+  background: #aa0000;
+  transform: scale(1.02);
+}
 .subscribe-btn.subscribed {
-    background: var(--bg-tertiary);
-    color: var(--text-primary);
+  background: #e5e5e5;
+  color: #0f0f0f;
 }
-
-.subscribe-btn.subscribed:hover:not(:disabled):not(.own-channel) {
-    background: var(--bg-hover);
+.subscribe-btn.subscribed:hover:not(:disabled) {
+  background: #cccccc;
 }
-
 .subscribe-btn.own-channel {
-    background: var(--bg-tertiary);
-    color: var(--text-dim);
-    cursor: default;
-    opacity: 0.7;
+  background: #e5e5e5;
+  color: #0f0f0f;
+  cursor: default;
 }
 
-.subscribe-btn:disabled:not(.own-channel) {
-    opacity: 0.6;
-    cursor: not-allowed;
+.subscribe-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 /* ===== VIDEO DESCRIPTION ===== */
@@ -1181,7 +1178,374 @@ body {
 .share-social-btn.twitter { background: #1DA1F2; }
 .share-social-btn.facebook { background: #1877F2; }
 .share-social-btn.reddit { background: #FF4500; }
+/* ============================================
+   EDIT COMMENT STYLES
+   ============================================ */
 
+/* Container for edit input */
+.edit-comment {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 8px 0 12px 0;
+  padding: 8px 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border-left: 3px solid #3ea6ff;
+  animation: slideDown 0.2s ease-out;
+  flex-wrap: wrap;
+}
+
+/* Edit input field */
+.edit-comment input {
+  flex: 1;
+  min-width: 150px;
+  padding: 10px 14px;
+  border: 2px solid #d0d7de;
+  border-radius: 6px;
+  font-size: 14px;
+  background: #ffffff;
+  color: #1e293b;
+  transition: all 0.25s ease;
+  outline: none;
+  font-family: inherit;
+}
+
+.edit-comment input:focus {
+  border-color: #3ea6ff;
+  box-shadow: 0 0 0 3px rgba(62, 166, 255, 0.15);
+}
+
+.edit-comment input::placeholder {
+  color: #94a3b8;
+  font-size: 13px;
+}
+
+/* Edit button styles */
+.edit-comment button {
+  padding: 8px 18px;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  font-family: inherit;
+}
+
+/* Save button */
+.edit-comment button:first-of-type {
+  background: #3ea6ff;
+  color: white;
+}
+
+.edit-comment button:first-of-type:hover:not(:disabled) {
+  background: #1a8cd8;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(62, 166, 255, 0.3);
+}
+
+.edit-comment button:first-of-type:active:not(:disabled) {
+  transform: translateY(0px);
+}
+
+.edit-comment button:first-of-type:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* Cancel button */
+.edit-comment button:last-of-type {
+  background: #e9ecef;
+  color: #475569;
+}
+
+.edit-comment button:last-of-type:hover:not(:disabled) {
+  background: #d0d7de;
+  transform: translateY(-1px);
+}
+
+.edit-comment button:last-of-type:active:not(:disabled) {
+  transform: translateY(0px);
+}
+
+.edit-comment button:last-of-type:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Edit animation */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================================
+   RESPONSIVE EDIT COMMENT STYLES
+   ============================================ */
+
+/* Tablets and smaller laptops */
+@media (max-width: 1024px) {
+  .edit-comment {
+    padding: 6px 10px;
+    gap: 8px;
+  }
+
+  .edit-comment input {
+    font-size: 13px;
+    padding: 8px 12px;
+    min-width: 120px;
+  }
+
+  .edit-comment button {
+    font-size: 12px;
+    padding: 7px 14px;
+  }
+}
+
+/* Mobile devices */
+@media (max-width: 768px) {
+  .edit-comment {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 10px 12px;
+    gap: 8px;
+  }
+
+  .edit-comment input {
+    width: 100%;
+    min-width: unset;
+    font-size: 14px;
+    padding: 10px 12px;
+  }
+
+  .edit-comment .edit-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+  }
+
+  .edit-comment button {
+    flex: 1;
+    text-align: center;
+    padding: 10px 16px;
+    font-size: 13px;
+    min-width: 80px;
+  }
+}
+
+/* Small mobile devices */
+@media (max-width: 480px) {
+  .edit-comment {
+    padding: 8px 10px;
+    border-radius: 6px;
+  }
+
+  .edit-comment input {
+    font-size: 13px;
+    padding: 8px 10px;
+  }
+
+  .edit-comment button {
+    font-size: 12px;
+    padding: 8px 12px;
+    min-width: 60px;
+  }
+}
+
+/* ============================================
+   EDIT IN NESTED COMMENTS (Replies)
+   ============================================ */
+
+/* Edit in reply section */
+.reply-item .edit-comment {
+  background: #f1f3f5;
+  border-left-color: #f97316;
+  padding: 6px 10px;
+  margin: 6px 0 8px 0;
+}
+
+.reply-item .edit-comment input {
+  padding: 8px 12px;
+  font-size: 13px;
+  border-color: #e2e8f0;
+}
+
+.reply-item .edit-comment input:focus {
+  border-color: #f97316;
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.12);
+}
+
+.reply-item .edit-comment button:first-of-type {
+  background: #f97316;
+}
+
+.reply-item .edit-comment button:first-of-type:hover:not(:disabled) {
+  background: #ea580c;
+  box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+}
+
+.reply-item .edit-comment button:first-of-type:disabled {
+  background: #94a3b8;
+}
+
+/* ============================================
+   DARK THEME SUPPORT (Optional)
+   ============================================ */
+
+@media (prefers-color-scheme: dark) {
+  .edit-comment {
+    background: #1e293b;
+    border-left-color: #3b82f6;
+  }
+
+  .edit-comment input {
+    background: #0f172a;
+    color: #e2e8f0;
+    border-color: #334155;
+  }
+
+  .edit-comment input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+  }
+
+  .edit-comment input::placeholder {
+    color: #64748b;
+  }
+
+  .edit-comment button:first-of-type {
+    background: #3b82f6;
+  }
+
+  .edit-comment button:first-of-type:hover:not(:disabled) {
+    background: #2563eb;
+  }
+
+  .edit-comment button:last-of-type {
+    background: #334155;
+    color: #cbd5e1;
+  }
+
+  .edit-comment button:last-of-type:hover:not(:disabled) {
+    background: #475569;
+  }
+
+  /* Dark mode for reply edits */
+  .reply-item .edit-comment {
+    background: #1e293b;
+    border-left-color: #f97316;
+  }
+
+  .reply-item .edit-comment input {
+    background: #0f172a;
+    border-color: #334155;
+    color: #e2e8f0;
+  }
+
+  .reply-item .edit-comment input:focus {
+    border-color: #f97316;
+    box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.2);
+  }
+
+  .reply-item .edit-comment button:first-of-type {
+    background: #f97316;
+  }
+
+  .reply-item .edit-comment button:first-of-type:hover:not(:disabled) {
+    background: #ea580c;
+  }
+}
+
+/* ============================================
+   UTILITY CLASSES
+   ============================================ */
+
+/* Edit mode indicator */
+.editing-mode {
+  position: relative;
+}
+
+.editing-mode::before {
+  content: '✎';
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #3ea6ff;
+  color: white;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Disabled interaction while editing */
+.comment-card-item.editing-disabled {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.comment-card-item.editing-disabled .comment-actions button {
+  pointer-events: none;
+}
+
+/* Edit icon animation */
+.edit-comment input:focus {
+  animation: pulseBorder 1.5s ease-in-out infinite;
+}
+
+@keyframes pulseBorder {
+  0%, 100% {
+    border-color: #3ea6ff;
+  }
+  50% {
+    border-color: #60a5fa;
+  }
+}
+
+/* Success state for edit */
+.edit-comment.saved {
+  border-left-color: #22c55e;
+  animation: savedFlash 0.5s ease;
+}
+
+@keyframes savedFlash {
+  0% {
+    background: #dcfce7;
+  }
+  100% {
+    background: #f8f9fa;
+  }
+}
+
+/* Error state for edit */
+.edit-comment.error {
+  border-left-color: #ef4444;
+  animation: errorShake 0.4s ease;
+}
+
+@keyframes errorShake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-5px);
+  }
+  75% {
+    transform: translateX(5px);
+  }
+}
 /* ===== RESPONSIVE ===== */
 @media (max-width: 1200px) {
     .watch-layout { gap: 20px; padding: 20px; }
@@ -1266,4 +1630,58 @@ body {
 }
 ::-webkit-scrollbar-thumb:hover {
     background: var(--bg-hover);
+}
+@media (max-width: 768px) {
+  .channel-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px 0;
+  }
+
+  .channel-avatar-row {
+    width: 100%;
+  }
+
+  .subscribe-btn {
+    width: 100%;
+    text-align: center;
+    padding: 10px 16px;
+  }
+
+  .video-header {
+    flex-direction: column;
+  }
+
+  .video-header h2 {
+    font-size: 16px;
+  }
+
+  .video-views {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  .channel-avatar-small {
+    width: 32px;
+    height: 32px;
+  }
+
+  .channel-name {
+    font-size: 13px;
+  }
+
+  .subscriber-count {
+    font-size: 12px;
+  }
+
+  .subscribe-btn {
+    font-size: 12px;
+    padding: 8px 12px;
+  }
+
+  .video-header h2 {
+    font-size: 14px;
+  }
 }

@@ -115,11 +115,20 @@
     gap: 12px;
 }
 
-.search-empty-icon {
-    font-size: 64px;
-    margin-bottom: 8px;
+.search-empty-icon svg{
+    font-size:72px;
+    color:#3ea6ff;
+}
+.meta-item{
+    display:flex;
+    align-items:center;
+    gap:5px;
 }
 
+.meta-item svg{
+    font-size:16px;
+    color:#aaa;
+}
 .search-empty h2 {
     font-size: 24px;
     font-weight: 600;

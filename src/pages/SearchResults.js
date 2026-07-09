@@ -3,6 +3,12 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { videoApi } from '../services/api';
 import defaultVideos from '../data/videos';
 import '../styles/SearchResults.css';
+import {
+    MdSearch,
+    MdOndemandVideo,
+    MdVisibility,
+    MdThumbUp
+} from "react-icons/md";
 
 function SearchResults() {
     const [searchParams] = useSearchParams();
@@ -149,7 +155,9 @@ function SearchResults() {
             {/* Results */}
             {query && results.length === 0 && !error && (
                 <div className="search-empty">
-                    <div className="search-empty-icon">🔍</div>
+                   <div className="search-empty-icon">
+                    <MdSearch />
+                   </div>
                     <h2>No results found</h2>
                     <p>We couldn't find any videos matching "<strong>{query}</strong>"</p>
                     <p className="search-empty-hint">Try different keywords or check your spelling</p>
@@ -178,12 +186,15 @@ function SearchResults() {
                                 <h3 className="search-result-title">{video.title || 'Untitled'}</h3>
                                 <p className="search-result-creator">{video.creator || 'Unknown Creator'}</p>
                                 <div className="search-result-meta">
-                                    <span>👁️ {formatViews(video.views || 0)} views</span>
-                                    {video.uploadedAt && (
+                                 <span className="meta-item">
+                                 <MdVisibility />
+                                  {formatViews(video.views || 0)} views
+                              </span>                                   
+                               {video.uploadedAt && (
                                         <span>• {formatDate(video.uploadedAt)}</span>
                                     )}
                                     {video.likes !== undefined && (
-                                        <span>• 👍 {video.likes}</span>
+                                        <span>• <MdThumbUp /> {video.likes}</span>
                                     )}
                                 </div>
                                 {video.description && (
@@ -200,7 +211,9 @@ function SearchResults() {
             {/* No query state */}
             {!query && !loading && (
                 <div className="search-empty search-empty-welcome">
-                    <div className="search-empty-icon">🎬</div>
+                    <div className="search-empty-icon">
+                      <MdOndemandVideo />
+                    </div>
                     <h2>Search for videos</h2>
                     <p>Enter a keyword above to find videos on Play+</p>
                     <div className="search-suggestions">
