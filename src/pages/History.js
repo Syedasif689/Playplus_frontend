@@ -157,7 +157,7 @@ function History() {
                                     <div className="dropdown-menu">
                                         <button onClick={() => handleRemove(item.id)} className="dropdown-item">
                                             <MdDeleteOutline size={20} />
-                                            <span>Delete</span>
+                                            <span>Remove from History</span>
                                         </button>
                                         <button onClick={() => handleShare(item.id)} className="dropdown-item">
                                             <MdShare size={20} />
