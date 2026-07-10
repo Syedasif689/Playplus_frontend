@@ -5,6 +5,16 @@ import defaultVideos from "../data/videos";
 import { videoApi, channelApi } from "../services/api";
 import { useAuth } from '../contexts/AuthContext';
 import "../styles/Channel.css";
+import {
+  FaShareAlt,
+  FaUserCircle,
+  FaCheckCircle,
+  FaBell,
+  FaVideo,
+  FaUsers,
+  FaSpinner
+} from "react-icons/fa";
+
 
 function Channel() {
   const { creator } = useParams();
@@ -186,19 +196,14 @@ function Channel() {
     return (
       <div className="channel-container">
         <div className="channel-loading">
-          <div className="loading-spinner"></div>
+          <FaSpinner className="spin" size={45} />
           <p>Loading channel...</p>
         </div>
       </div>
     );
   }
 
-  // Determine button text
-  const getButtonText = () => {
-    if (isOwnChannel) return 'Your Channel';
-    if (!user) return 'Login to Subscribe';
-    return subscribed ? 'Subscribed ✓' : 'Subscribe';
-  };
+
 
   // Determine if button should be disabled
   const isButtonDisabled = () => {
@@ -209,38 +214,67 @@ function Channel() {
     <div className="channel-container">
       <div className="channel-banner"></div>
 
-      <div className="channel-profile">
-        <div className="channel-avatar">
-          {creator?.charAt(0).toUpperCase() || 'U'}
-        </div>
-
+      <div className="channel-avatar">
+           <FaUserCircle size={80} />
+      </div>
         <div className="channel-info">
           <div className="channel-title-row">
             <h1>{creator || 'Unknown Creator'}</h1>
             <div className="channel-actions-row">
               <button
-                className={`subscribe-btn ${subscribed ? 'subscribed' : ''} ${isOwnChannel ? 'own-channel' : ''}`}
-                onClick={handleSubscribe}
-                disabled={isButtonDisabled()}
-              >
-                {getButtonText()}
-                {!isOwnChannel && subscriberCount > 0 && (
-                  <span className="sub-count">• {formatSubscriberCount(subscriberCount)}</span>
-                )}
-              </button>
+               className={`subscribe-btn ${subscribed ? 'subscribed' : ''} ${isOwnChannel ? 'own-channel' : ''}`}
+               onClick={handleSubscribe}
+               disabled={isButtonDisabled()}
+            >
+              {isOwnChannel ? (
+            <>
+              <FaUserCircle />
+               <span>Your Channel</span>
+              </>
+            ) : !user ? (
+              <>
+             <FaBell />
+             <span>Login to Subscribe</span>
+            </>
+            ) : subscribed ? (
+           <>
+           <FaCheckCircle />
+            <span>Subscribed</span>
+           </>
+           ) : (
+             <>
+          <FaBell />
+          <span>Subscribe</span>
+          </>
+        )}
+
+  {!isOwnChannel && subscriberCount > 0 && (
+    <span className="sub-count">
+      • {formatSubscriberCount(subscriberCount)}
+    </span>
+  )}
+</button>
               
               <button
                 className="share-btn"
                 onClick={handleShare}
                 title="Share this channel"
               >
-                🔗 Share
+                <FaShareAlt />
+                <span>Share</span>
               </button>
             </div>
           </div>
+          <p className="channel-stats">
 
-          <p>
-            {creatorVideos.length} Videos • {formatSubscriberCount(subscriberCount)} Subscribers
+           <FaVideo />
+
+           <span>{creatorVideos.length} Videos</span>
+
+           <FaUsers />
+
+           <span>{formatSubscriberCount(subscriberCount)} Subscribers</span>
+
           </p>
 
           {shareSuccess && (
@@ -249,13 +283,14 @@ function Channel() {
             </div>
           )}
         </div>
-      </div>
 
       {error && <div className="channel-error">{error}</div>}
 
-      <h2 className="videos-heading">Videos</h2>
-
-      {creatorVideos.length > 0 ? (
+      <h2 className="videos-heading">
+        <FaVideo />
+        <span>Videos</span>
+       </h2> 
+       {creatorVideos.length > 0 ? (
         <div className="channel-videos">
           {creatorVideos.map((video) => (
             <VideoCard
@@ -275,6 +310,7 @@ function Channel() {
           <p>No videos uploaded by {creator} yet.</p>
         </div>
       )}
+    
     </div>
   );
 }
