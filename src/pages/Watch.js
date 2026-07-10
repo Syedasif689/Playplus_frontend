@@ -73,11 +73,10 @@ function Watch() {
   // Loading states for async operations
   const [isPostingComment, setIsPostingComment] = useState(false);
   const [isPostingReply, setIsPostingReply] = useState(false);
-  const [isReacting, setIsReacting] = useState(false);
   const [isEditingComment, setIsEditingComment] = useState(false);
   
   // Ref to track pending like requests
-  const pendingLikes = useRef(new Map());
+ 
 
   // Helper to generate download URL for Cloudinary videos
   const getDownloadUrl = (url) => {
@@ -488,10 +487,7 @@ function Watch() {
       return;
     }
 
-    if (pendingLikes.current.has(commentId)) return;
-
-    pendingLikes.current.set(commentId, true);
-
+    
     const previousComments = JSON.parse(JSON.stringify(comments));
     try {
       setComments(prev =>
@@ -514,9 +510,7 @@ function Watch() {
     } catch (error) {
       console.error(error);
       setComments(previousComments);
-    } finally {
-      pendingLikes.current.delete(commentId);
-    }
+    } 
   }, [user, comments, findAndUpdateNode]);
 
   // COMMENT CRUD OPERATIONS
@@ -773,12 +767,11 @@ function Watch() {
       return;
     }
 
-    if (isReacting) return;
-
-    setIsReacting(true);
+    
 
     const oldReaction = reaction;
-
+    const oldLikes = likes;
+    const oldDislikes = dislikes;
     try {
       if (oldReaction === type) {
         setReaction(null);
@@ -792,14 +785,13 @@ function Watch() {
         setReaction(type);
 
         if (type === "like") {
-          setLikes(prev => prev + 1);
+         setLikes(oldLikes + 1);
 
           if (oldReaction === "dislike") {
             setDislikes(prev => Math.max(0, prev - 1));
           }
         } else {
-          setDislikes(prev => prev + 1);
-
+          setDislikes(oldDislikes + 1);
           if (oldReaction === "like") {
             setLikes(prev => Math.max(0, prev - 1));
           }
@@ -814,8 +806,10 @@ function Watch() {
 
     } catch (error) {
       console.error(error);
-    } finally {
-      setIsReacting(false);
+
+      setReaction(oldReaction);
+      setLikes(oldLikes);
+      setDislikes(oldDislikes);
     }
   };
 

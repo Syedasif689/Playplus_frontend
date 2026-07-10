@@ -63,21 +63,22 @@ function History() {
         }
     };
 
-    const handleRemove = async (id) => {
-        try {
-            if (userApi.removeHistoryItem) {
-                await userApi.removeHistoryItem(id);
-            } else {
-                console.warn('removeHistoryItem API not implemented, removing locally');
-            }
-            setHistory(prev => prev.filter(item => item.id !== id));
-            setOpenMenuId(null);
-        } catch (err) {
-            alert('Failed to remove video from history');
-            console.error(err);
-        }
-    };
+   const handleRemove = async (id) => {
+    // Remove immediately from UI
+    setHistory(prev => prev.filter(item => item.id !== id));
+    setOpenMenuId(null);
 
+    try {
+        await userApi.removeHistoryItem(id);
+    } catch (err) {
+        alert("Failed to remove video from history");
+        console.error(err);
+
+        // Reload history if backend deletion fails
+        const response = await userApi.getHistory();
+        setHistory(response.data);
+    }
+};
     const handleShare = async (id) => {
         const url = `${window.location.origin}/watch/${id}`;
         try {

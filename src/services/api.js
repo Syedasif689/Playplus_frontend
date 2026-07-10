@@ -85,6 +85,7 @@ export const userApi = {
     getHistory: () => API.get('/user/history'),
     clearHistory: () => API.delete('/user/history'),
     getLikedVideos: () => API.get('/user/liked-videos'),
+    removeHistoryItem: (videoId) => API.delete(`/user/history/${videoId}`),
 };
 
 export default API;
