@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { userApi } from '../services/api';
@@ -20,7 +20,6 @@ function History() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [openMenuId, setOpenMenuId] = useState(null);
-    const menuRef = useRef(null);
 
     useEffect(() => {
         if (!user) {
@@ -42,15 +41,6 @@ function History() {
     }, [user]);
 
     // Close dropdown when clicking outside
-    useEffect(() => {
-        const handleClickOutside = (e) => {
-            if (menuRef.current && !menuRef.current.contains(e.target)) {
-                setOpenMenuId(null);
-            }
-        };
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
 
     const handleClearHistory = async () => {
         if (!window.confirm('Clear your entire watch history?')) return;
@@ -135,38 +125,62 @@ function History() {
                 <div className="history-grid">
                     {history.map(item => (
                         <div key={item.id} className="history-item">
-                            <div className="history-item-wrapper">
-                                <VideoCard
-                                    id={item.id}
-                                    title={item.title}
-                                    creator={item.creator}
-                                    thumbnail={item.thumbnail}
-                                    views={item.views}
-                                    likes={item.likes}
-                                />
-                            </div>
-                            {/* ---- Button moved OUTSIDE the wrapper ---- */}
-                            <div className="history-item-actions" ref={menuRef}>
-                                <button
-                                    className="more-btn"
-                                    onClick={() => setOpenMenuId(openMenuId === item.id ? null : item.id)}
-                                    aria-label="More options"
-                                >
-                                    <MdMoreVert size={26} />
-                                </button>
-                                {openMenuId === item.id && (
-                                    <div className="dropdown-menu">
-                                        <button onClick={() => handleRemove(item.id)} className="dropdown-item">
-                                            <MdDeleteOutline size={20} />
-                                            <span>Remove from History</span>
-                                        </button>
-                                        <button onClick={() => handleShare(item.id)} className="dropdown-item">
-                                            <MdShare size={20} />
-                                            <span>Share</span>
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
+                
+                               <VideoCard
+                                 id={item.id}
+                                 title={item.title}
+                                 creator={item.creator}
+                                 thumbnail={item.thumbnail}
+                                 views={item.views}
+                                 likes={item.likes}
+                                 actions={
+                                <>
+                               <button
+                                 className="more-btn"
+                                   onClick={(e) => {
+                                   e.preventDefault();
+                                   e.stopPropagation();
+                                   setOpenMenuId(
+                                   openMenuId === item.id ? null : item.id
+                                );
+                            }}
+                        >
+                           <MdMoreVert size={34}/>
+                        </button>
+
+            {openMenuId === item.id && (
+                <div className="dropdown-menu">
+
+                   <button
+                    className="dropdown-item"
+                     onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        handleRemove(item.id);
+    }}
+>
+                        <MdDeleteOutline size={20}/>
+                        Remove from History
+                    </button>
+
+                    <button
+                        onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleShare(item.id);
+                        }}
+                        className="dropdown-item"
+                    >
+                        <MdShare size={20}/>
+                        Share
+                    </button>
+
+                </div>
+            )}
+        </>
+    }
+/>
+                        
                             <span className="watched-date">
                                 <MdSchedule />
                                 {new Date(item.watchedAt).toLocaleString()}

@@ -16,6 +16,21 @@
     transition: transform 0.25s ease, box-shadow 0.25s ease;
     cursor: pointer;
 }
+.video-title-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:10px;
+}
+
+.video-title{
+    flex:1;
+    margin:0;
+}
+
+.video-actions{
+    flex-shrink:0;
+}
 
 /* Only apply hover effects on devices that support hover */
 @media (hover: hover) {

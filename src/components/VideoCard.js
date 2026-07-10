@@ -15,6 +15,7 @@ function VideoCard({
   likes,
   views,
   uploadedAt,
+  actions,        // NEW PROP
 }) {
   return (
     <Link to={`/watch/${id}`} className="video-link">
@@ -35,7 +36,23 @@ function VideoCard({
 
         <div className="video-info">
 
-          <h3>{title}</h3>
+          {/* Title + Actions */}
+          <div className="video-title-row">
+
+            <h3 className="video-title">
+              {title}
+            </h3>
+
+            {actions && (
+              <div
+                className="video-actions"
+                onClick={(e) => e.preventDefault()}
+              >
+                {actions}
+              </div>
+            )}
+
+          </div>
 
           <div className="video-creator">
             <FaUserCircle className="creator-icon" />
@@ -43,6 +60,7 @@ function VideoCard({
           </div>
 
           <div className="video-meta">
+
             <span>
               <FaRegThumbsUp />
               {likes || 0}
@@ -54,9 +72,11 @@ function VideoCard({
                 {new Date(uploadedAt).toLocaleDateString()}
               </span>
             )}
+
           </div>
 
         </div>
+
       </div>
     </Link>
   );
