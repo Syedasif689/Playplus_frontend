@@ -43,14 +43,16 @@ function VideoCard({
               {title}
             </h3>
 
-            {actions && (
-              <div
-                className="video-actions"
-                onClick={(e) => e.preventDefault()}
-              >
+            <div
+              className="video-actions"
+               onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+            >
                 {actions}
               </div>
-            )}
+            
 
           </div>
 

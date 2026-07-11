@@ -123,71 +123,68 @@ function History() {
                 </div>
             ) : (
                 <div className="history-grid">
-                    {history.map(item => (
-                        <div key={item.id} className="history-item">
-                
-                               <VideoCard
-                                 id={item.id}
-                                 title={item.title}
-                                 creator={item.creator}
-                                 thumbnail={item.thumbnail}
-                                 views={item.views}
-                                 likes={item.likes}
-                                 actions={
-                                <>
-                               <button
-                                 className="more-btn"
-                                   onClick={(e) => {
-                                   e.preventDefault();
-                                   e.stopPropagation();
-                                   setOpenMenuId(
-                                   openMenuId === item.id ? null : item.id
-                                );
-                            }}
-                        >
-                           <MdMoreVert size={34}/>
-                        </button>
+  {history.map(item => (
+    <div key={item.id} className="history-item">
+      {/* Thumbnail & card are wrapped */}
+      <div className="history-item-wrapper">
+        <VideoCard
+          id={item.id}
+          title={item.title}
+          creator={item.creator}
+          thumbnail={item.thumbnail}
+          views={item.views}
+          likes={item.likes}
+          // ❌ No 'actions' prop – we place buttons outside
+        />
+      </div>
 
-            {openMenuId === item.id && (
-                <div className="dropdown-menu">
+      {/* --- More button & dropdown – OUTSIDE the wrapper --- */}
+      <button
+        className="more-btn"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          setOpenMenuId(openMenuId === item.id ? null : item.id);
+        }}
+        aria-label="More actions"
+      >
+        <MdMoreVert size={32} />
+      </button>
 
-                   <button
-                    className="dropdown-item"
-                     onClick={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        handleRemove(item.id);
-    }}
->
-                        <MdDeleteOutline size={20}/>
-                        Remove from History
-                    </button>
+      {openMenuId === item.id && (
+        <div className="dropdown-menu">
+          <button
+            className="dropdown-item"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleRemove(item.id);
+            }}
+          >
+            <MdDeleteOutline size={20} />
+            Remove from History
+          </button>
+          <button
+            className="dropdown-item"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleShare(item.id);
+            }}
+          >
+            <MdShare size={20} />
+            Share
+          </button>
+        </div>
+      )}
 
-                    <button
-                        onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            handleShare(item.id);
-                        }}
-                        className="dropdown-item"
-                    >
-                        <MdShare size={20}/>
-                        Share
-                    </button>
-
-                </div>
-            )}
-        </>
-    }
-/>
-                        
-                            <span className="watched-date">
-                                <MdSchedule />
-                                {new Date(item.watchedAt).toLocaleString()}
-                            </span>
-                        </div>
-                    ))}
-                </div>
+      <span className="watched-date">
+        <MdSchedule />
+        {new Date(item.watchedAt).toLocaleString()}
+      </span>
+    </div>
+  ))}
+</div>
             )}
         </div>
     );

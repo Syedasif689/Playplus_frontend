@@ -1,39 +1,37 @@
 /* ==========================================
-   HISTORY PAGE
-========================================== */
+   HISTORY PAGE - FIXED DROPDOWN
+   ========================================== */
 
 .history-container {
     width: 100%;
     min-height: 100vh;
     background: #0f0f0f;
     color: #fff;
-    padding: 30px;
+    padding: 24px 20px;
 }
 
-/* ==========================================
-   HEADER
-========================================== */
-
+/* ---------- HEADER ---------- */
 .history-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 30px;
-    gap: 20px;
+    margin-bottom: 28px;
+    gap: 16px;
     flex-wrap: wrap;
 }
 
 .history-title {
     display: flex;
     align-items: center;
-    gap: 12px;
-    font-size: 2rem;
+    gap: 10px;
+    font-size: 1.8rem;
     font-weight: 700;
+    margin: 0;
 }
 
 .history-title-icon {
     color: #ff3d3d;
-    font-size: 2rem;
+    font-size: 1.8rem;
 }
 
 .clear-history-btn {
@@ -44,112 +42,110 @@
     color: white;
     border: none;
     border-radius: 10px;
-    padding: 12px 18px;
+    padding: 10px 20px;
     cursor: pointer;
-    transition: .25s;
-    font-size: .95rem;
+    transition: background 0.25s;
+    font-size: 0.95rem;
+    white-space: nowrap;
 }
 
 .clear-history-btn:hover {
     background: #3a3a3a;
 }
 
-/* ==========================================
-   GRID
-========================================== */
-
+/* ---------- GRID ---------- */
 .history-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px,1fr));
-    gap: 28px;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 24px;
 }
 
-/* ==========================================
-   CARD
-========================================== */
-
+/* ---------- CARD ---------- */
 .history-item {
-    position: relative;
+    position: relative; /* required for dropdown positioning */
     display: flex;
     flex-direction: column;
+    background: #181818;
+    border-radius: 12px;
+     overflow: visible;  
+    transition: transform 0.2s ease;
 }
 
+.history-item:hover {
+    transform: translateY(-3px);
+}
+
+/* This wrapper clips the video card itself */
 .history-item-wrapper {
     width: 100%;
+    border-radius: 12px 12px 0 0;
+    overflow: hidden;
+    background: #000; /* fallback */
 }
 
-/* ==========================================
-   3 DOT BUTTON
-========================================== */
+/* If you use VideoCard inside, reset its border-radius */
+.history-item-wrapper .video-card {
+    border-radius: 0;
+}
 
-
+/* ---------- MORE BUTTON ---------- */
 .more-btn {
-    width: 38px;
-    height: 38px;
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 36px;
+    height: 36px;
     border: none;
-    background: transparent;
+    background: rgba(0, 0, 0, 0.6);
     color: #fff;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: background 0.2s ease;
-}
-.more-btn {
-    width: 60px;
-    height: 60px;
+    transition: background 0.2s, transform 0.15s;
+    z-index: 10;
+    backdrop-filter: blur(4px);
+    padding: 0;
 }
 
-.more-btn svg {
-    width: 34px;
-    height: 34px;
-}
 .more-btn:hover {
-    background: rgba(255,255,255,0.12);
-}
-
-.more-btn svg {
-    font-size: 26px;
+    background: rgba(255, 255, 255, 0.15);
 }
 
 .more-btn:active {
-    transform: scale(0.95);
+    transform: scale(0.92);
 }
 
-/* ==========================================
-   DROPDOWN
-========================================== */
+.more-btn svg {
+    width: 20px;
+    height: 20px;
+    display: block;
+}
 
+/* ---------- DROPDOWN ---------- */
 .dropdown-menu {
     position: absolute;
-    top: 240px;
-    right: 0;
-    left:90px;
-
-    width: 220px;
-
+    top: 48px;
+    right: 12px;
+    width: 200px;
     background: #202020;
     border: 1px solid #333;
     border-radius: 12px;
-
     overflow: hidden;
-
-    box-shadow: 0 10px 30px rgba(0,0,0,.45);
-
-    z-index: 9999;
-
-    animation: fadeMenu .18s ease;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+    z-index: 9999; /* high above everything */
+    animation: fadeMenu 0.18s ease;
 }
 
 @keyframes fadeMenu {
-    from{
-        opacity:0;
-        transform:translateY(10px);
+    from {
+        opacity: 0;
+        transform: translateY(6px);
     }
-    to{
-        opacity:1;
-        transform:translateY(0);
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 }
 
@@ -160,49 +156,51 @@
     color: white;
     display: flex;
     align-items: center;
-    gap: 14px;
-    padding: 14px 18px;
+    gap: 12px;
+    padding: 12px 16px;
     cursor: pointer;
-    transition: .2s;
-    font-size: .95rem;
+    transition: background 0.2s;
+    font-size: 0.95rem;
+    text-align: left;
+    font-family: inherit;
 }
 
 .dropdown-item:hover {
     background: #303030;
 }
 
-/* ==========================================
-   WATCHED DATE
-========================================== */
-
-.watched-date {
-    margin-top: 12px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    color: #aaaaaa;
-    font-size: .9rem;
+.dropdown-item svg {
+    font-size: 18px;
+    flex-shrink: 0;
 }
 
-/* ==========================================
-   EMPTY
-========================================== */
+/* ---------- WATCHED DATE ---------- */
+.watched-date {
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #aaaaaa;
+    font-size: 0.85rem;
+    padding: 0 14px 14px 14px;
+}
 
+/* ---------- EMPTY & ERROR ---------- */
 .no-history {
     text-align: center;
-    padding: 90px 20px;
+    padding: 80px 20px;
 }
 
 .no-history-icon {
-    font-size: 90px;
+    font-size: 72px;
     color: #555;
-    margin-bottom: 20px;
+    margin-bottom: 16px;
 }
 
 .no-history p {
     font-size: 1.1rem;
     color: #aaa;
-    margin-bottom: 30px;
+    margin-bottom: 24px;
 }
 
 .browse-btn {
@@ -212,124 +210,197 @@
     text-decoration: none;
     background: #ff3d3d;
     color: white;
-    padding: 12px 26px;
+    padding: 12px 28px;
     border-radius: 10px;
-    transition: .25s;
+    transition: background 0.25s;
+    font-weight: 500;
 }
 
 .browse-btn:hover {
     background: #ff2323;
 }
 
-/* ==========================================
-   ERROR
-========================================== */
-
 .history-error {
     margin-bottom: 20px;
-    padding: 14px;
+    padding: 14px 18px;
     border-radius: 8px;
-    background: rgba(255,0,0,.15);
+    background: rgba(255, 0, 0, 0.12);
     color: #ff8080;
+    font-size: 0.95rem;
 }
 
 /* ==========================================
-   TABLET
-========================================== */
+   RESPONSIVE BREAKPOINTS
+   ========================================== */
 
-@media (max-width:992px){
-
-.history-container{
-    padding:20px;
+/* ---------- TABLETS ---------- */
+@media (max-width: 992px) {
+    .history-container {
+        padding: 18px 16px;
+    }
+    .history-grid {
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 20px;
+    }
+    .history-title {
+        font-size: 1.6rem;
+    }
+    .clear-history-btn {
+        padding: 8px 16px;
+        font-size: 0.9rem;
+    }
 }
 
-.history-grid{
-    grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
-    gap:22px;
+/* ---------- MOBILE (≤768px) ---------- */
+@media (max-width: 768px) {
+    .history-container {
+        padding: 14px 12px;
+    }
+    .history-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 14px;
+        margin-bottom: 20px;
+    }
+    .history-title {
+        font-size: 1.4rem;
+        justify-content: center;
+    }
+    .clear-history-btn {
+        justify-content: center;
+        width: 100%;
+        padding: 10px;
+    }
+    .history-grid {
+        grid-template-columns: 1fr;
+        gap: 18px;
+    }
+    .more-btn {
+        top: 10px;
+        right: 10px;
+        width: 32px;
+        height: 32px;
+    }
+    .more-btn svg {
+        width: 18px;
+        height: 18px;
+    }
+    .dropdown-menu {
+        width: 180px;
+        right: 10px;
+        top: 42px;
+        border-radius: 10px;
+    }
+    .dropdown-item {
+        padding: 10px 14px;
+        font-size: 0.9rem;
+        gap: 10px;
+    }
+    .watched-date {
+        font-size: 0.8rem;
+        padding: 0 12px 12px 12px;
+    }
+    .no-history {
+        padding: 60px 16px;
+    }
+    .no-history-icon {
+        font-size: 56px;
+    }
+    .no-history p {
+        font-size: 1rem;
+    }
 }
 
-.history-title{
-    font-size:1.7rem;
+/* ---------- SMALL PHONES (≤480px) ---------- */
+@media (max-width: 480px) {
+    .history-container {
+        padding: 10px 8px;
+    }
+    .history-title {
+        font-size: 1.2rem;
+        gap: 6px;
+    }
+    .history-title-icon {
+        font-size: 1.3rem;
+    }
+    .clear-history-btn {
+        font-size: 0.8rem;
+        padding: 8px 12px;
+        gap: 6px;
+        border-radius: 8px;
+    }
+    .history-grid {
+        gap: 14px;
+    }
+    .more-btn {
+        top: 210px;
+        right: 8px;
+        width: 28px;
+        height: 28px;
+    }
+    .more-btn svg {
+        width: 16px;
+        height: 16px;
+    }
+    .dropdown-menu {
+        width: 160px;
+        right: 58px;
+        top: 210px;
+        border-radius: 8px;
+    }
+    .dropdown-item {
+        padding: 8px 12px;
+        font-size: 0.8rem;
+        gap: 8px;
+    }
+    .dropdown-item svg {
+        font-size: 16px;
+    }
+    .watched-date {
+        font-size: 0.7rem;
+        padding: 0 10px 10px 10px;
+        gap: 4px;
+        flex-wrap: wrap;
+    }
+    .no-history {
+        padding: 40px 12px;
+    }
+    .no-history-icon {
+        font-size: 44px;
+    }
+    .no-history p {
+        font-size: 0.9rem;
+    }
+    .browse-btn {
+        padding: 10px 20px;
+        font-size: 0.9rem;
+    }
+    .history-error {
+        font-size: 0.8rem;
+        padding: 10px 12px;
+    }
 }
 
-}
-
-/* ==========================================
-   MOBILE
-========================================== */
-
-@media (max-width:768px){
-
-.history-container{
-    padding:16px;
-}
-
-.history-header{
-    flex-direction:column;
-    align-items:flex-start;
-    gap:18px;
-}
-
-.history-title{
-    font-size:1.5rem;
-}
-
-.clear-history-btn{
-    width:100%;
-    justify-content:center;
-}
-
-.history-grid{
-    grid-template-columns:1fr;
-    gap:24px;
-}
-
-.history-item-actions{
-    right:6px;
-    bottom:40px;
-}
-
-.dropdown-menu{
-    width:210px;
-}
-
-}
-
-/* ==========================================
-   SMALL MOBILE
-========================================== */
-
-@media (max-width:480px){
-
-.history-container{
-    padding:12px;
-}
-
-.history-title{
-    font-size:1.3rem;
-}
-
-.more-btn{
-    width:34px;
-    height:34px;
-}
-
-.history-item-actions{
-    right:4px;
-    bottom:38px;
-}
-
-.dropdown-menu{
-    width:190px;
-}
-
-.dropdown-item{
-    padding:12px 14px;
-    font-size:.9rem;
-}
-
-.watched-date{
-    font-size:.8rem;
-}
-
+/* ---------- EXTRA SMALL (≤360px) ---------- */
+@media (max-width: 360px) {
+    .history-title {
+        font-size: 1rem;
+    }
+    .clear-history-btn {
+        font-size: 0.7rem;
+        padding: 6px 10px;
+    }
+    .dropdown-menu {
+        width: 140px;
+        right: 6px;
+        top: 32px;
+    }
+    .dropdown-item {
+        font-size: 0.75rem;
+        padding: 6px 10px;
+        gap: 6px;
+    }
+    .watched-date {
+        font-size: 0.65rem;
+    }
 }

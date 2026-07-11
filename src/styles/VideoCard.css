@@ -12,23 +12,30 @@
     width: 100%;
     background: #181818;
     border-radius: 12px;
-    overflow: hidden;
+    overflow: visible;     /* Changed */
+    position: relative;    /* Added */
     transition: transform 0.25s ease, box-shadow 0.25s ease;
     cursor: pointer;
 }
 .video-title-row{
     display:flex;
-    justify-content:space-between;
     align-items:flex-start;
-    gap:10px;
+    justify-content:space-between;
+    gap:8px;
+    width:100%;
 }
 
 .video-title{
     flex:1;
     margin:0;
+    min-width:0;
 }
 
 .video-actions{
+    position:relative;
+    display:flex;
+    align-items:center;
+    justify-content:center;
     flex-shrink:0;
 }
 
@@ -83,8 +90,9 @@
    ========================= */
 .video-info {
     padding: 12px 14px;
+    position: relative;
+    overflow: visible;
 }
-
 .video-info h3 {
     color: #fff;
     font-size: 16px;
