@@ -300,15 +300,6 @@ function Navbar() {
                 <div className="nav-right">
                     {user ? (
                         <>
-                            <Link
-                                to="/notifications"
-                                className="notification-btn hidden-mobile"
-                                aria-label="Notifications"
-                            >
-                                <MdNotifications size={26} />
-                                {/* Optional badge — uncomment if you have notification count */}
-                                {/* <span className="notification-badge">3</span> */}
-                            </Link>
                             <Link to="/profile" className="profile-link" aria-label="Profile">
                                 <MdAccountCircle size={35} />
                                 <span className="username">{user.username}</span>
@@ -389,6 +380,14 @@ function Navbar() {
                             </NavLink>
                         </li>
                     )}
+                    {user && (
+                    <li>
+                       <NavLink to="/notifications" onClick={closeSidebar}>
+                      <MdNotifications size={22} />
+                      <span>Notifications</span>
+                     </NavLink>
+                    </li>
+                   )}
                     {user && (
                         <li>
                             <NavLink to="/history" onClick={closeSidebar}>
