@@ -1,6 +1,6 @@
-/* ==========================================
-   HISTORY PAGE - FIXED DROPDOWN
-   ========================================== */
+/* ============================================
+   HISTORY PAGE - FINAL (TIGHT SPACING)
+   ============================================ */
 
 .history-container {
     width: 100%;
@@ -52,7 +52,36 @@
 .clear-history-btn:hover {
     background: #3a3a3a;
 }
+.no-history {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 
+    text-align: center;
+
+    margin: 40px auto 0;
+    padding: 20px;
+
+    max-width: 500px;
+}
+
+.no-history-icon {
+    font-size: 72px;
+    color: #666;
+    margin-bottom: 18px;
+}
+
+.no-history p {
+    margin: 0 0 24px;
+    font-size: 1.1rem;
+    color: #aaa;
+}
+
+.browse-btn {
+    padding: 12px 28px;
+    border-radius: 999px;
+}
 /* ---------- GRID ---------- */
 .history-grid {
     display: grid;
@@ -60,14 +89,14 @@
     gap: 24px;
 }
 
-/* ---------- CARD ---------- */
+/* ---------- CARD ITEM ---------- */
 .history-item {
-    position: relative; /* required for dropdown positioning */
+    position: relative;
     display: flex;
     flex-direction: column;
     background: #181818;
     border-radius: 12px;
-     overflow: visible;  
+    overflow: visible !important;
     transition: transform 0.2s ease;
 }
 
@@ -75,42 +104,65 @@
     transform: translateY(-3px);
 }
 
-/* This wrapper clips the video card itself */
 .history-item-wrapper {
     width: 100%;
     border-radius: 12px 12px 0 0;
-    overflow: hidden;
-    background: #000; /* fallback */
+    overflow: visible !important;
+    background: #000;
 }
 
-/* If you use VideoCard inside, reset its border-radius */
+.history-item-wrapper .video-thumbnail {
+    border-radius: 12px 12px 0 0;
+    overflow: hidden;
+}
+
 .history-item-wrapper .video-card {
     border-radius: 0;
 }
 
-/* ---------- MORE BUTTON ---------- */
+/* ---------- OVERRIDE INNER CONTAINERS ---------- */
+.history-item .video-card,
+.history-item .video-info,
+.history-item .video-title-row,
+.history-item .video-actions {
+    overflow: visible;
+}
+
+
+/* ---------- SPACING OVERRIDES (tighter) ---------- */
+.history-item .video-info {
+    padding: 4px 10px 6px ;
+}
+.history-item .video-info h3 {
+    margin: 0 0 2px 0 ;
+    font-size: 15px;
+     line-height: 1.3 ;  
+}
+.history-item .video-creator {
+    margin:0 0 1px 0 ;
+    font-size: 13px;
+}
+.history-item .video-meta {
+    margin-top: 1px ;
+    font-size: 12px;
+}
+
+/* ---------- THREE-DOT BUTTON ---------- */
 .more-btn {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    width: 36px;
-    height: 36px;
+    background: transparent;
     border: none;
-    background: rgba(0, 0, 0, 0.6);
     color: #fff;
-    border-radius: 50%;
+    cursor: pointer;
+    padding: 2px 4px;
     display: flex;
     align-items: center;
     justify-content: center;
-    cursor: pointer;
+    border-radius: 50%;
     transition: background 0.2s, transform 0.15s;
-    z-index: 10;
-    backdrop-filter: blur(4px);
-    padding: 0;
 }
 
 .more-btn:hover {
-    background: rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.08);
 }
 
 .more-btn:active {
@@ -118,35 +170,32 @@
 }
 
 .more-btn svg {
-    width: 20px;
-    height: 20px;
+    width:24px;
+    height:24px;
     display: block;
 }
 
 /* ---------- DROPDOWN ---------- */
 .dropdown-menu {
     position: absolute;
-    top: 48px;
-    right: 12px;
-    width: 200px;
+    top: calc(100% + 6px);
+    right: 0;
+    min-width: 190px;
+    max-width: 220px;
     background: #202020;
     border: 1px solid #333;
     border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
-    z-index: 9999; /* high above everything */
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+    z-index: 9999;
+    overflow: visible !important;
+    height: auto;
+    min-height: 70px;
     animation: fadeMenu 0.18s ease;
 }
 
 @keyframes fadeMenu {
-    from {
-        opacity: 0;
-        transform: translateY(6px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
 }
 
 .dropdown-item {
@@ -157,10 +206,10 @@
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 12px 16px;
+    padding: 10px 16px;
     cursor: pointer;
     transition: background 0.2s;
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     text-align: left;
     font-family: inherit;
 }
@@ -176,231 +225,52 @@
 
 /* ---------- WATCHED DATE ---------- */
 .watched-date {
-    margin-top: 8px;
+    margin-top: 6px;
     display: flex;
     align-items: center;
     gap: 6px;
     color: #aaaaaa;
-    font-size: 0.85rem;
-    padding: 0 14px 14px 14px;
+    font-size: 0.8rem;
+    padding: 0 12px 12px 12px;
 }
 
-/* ---------- EMPTY & ERROR ---------- */
-.no-history {
-    text-align: center;
-    padding: 80px 20px;
-}
-
-.no-history-icon {
-    font-size: 72px;
-    color: #555;
-    margin-bottom: 16px;
-}
-
-.no-history p {
-    font-size: 1.1rem;
-    color: #aaa;
-    margin-bottom: 24px;
-}
-
-.browse-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    text-decoration: none;
-    background: #ff3d3d;
-    color: white;
-    padding: 12px 28px;
-    border-radius: 10px;
-    transition: background 0.25s;
-    font-weight: 500;
-}
-
-.browse-btn:hover {
-    background: #ff2323;
-}
-
-.history-error {
-    margin-bottom: 20px;
-    padding: 14px 18px;
-    border-radius: 8px;
-    background: rgba(255, 0, 0, 0.12);
-    color: #ff8080;
-    font-size: 0.95rem;
-}
-
-/* ==========================================
-   RESPONSIVE BREAKPOINTS
-   ========================================== */
-
-/* ---------- TABLETS ---------- */
-@media (max-width: 992px) {
-    .history-container {
-        padding: 18px 16px;
-    }
-    .history-grid {
-        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-        gap: 20px;
-    }
-    .history-title {
-        font-size: 1.6rem;
-    }
-    .clear-history-btn {
-        padding: 8px 16px;
-        font-size: 0.9rem;
-    }
-}
-
-/* ---------- MOBILE (≤768px) ---------- */
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+   
 @media (max-width: 768px) {
-    .history-container {
-        padding: 14px 12px;
-    }
-    .history-header {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 14px;
-        margin-bottom: 20px;
-    }
-    .history-title {
-        font-size: 1.4rem;
-        justify-content: center;
-    }
-    .clear-history-btn {
-        justify-content: center;
-        width: 100%;
-        padding: 10px;
-    }
-    .history-grid {
-        grid-template-columns: 1fr;
-        gap: 18px;
-    }
-    .more-btn {
-        top: 10px;
-        right: 10px;
-        width: 32px;
-        height: 32px;
-    }
-    .more-btn svg {
-        width: 18px;
-        height: 18px;
-    }
-    .dropdown-menu {
-        width: 180px;
-        right: 10px;
-        top: 42px;
-        border-radius: 10px;
-    }
-    .dropdown-item {
-        padding: 10px 14px;
-        font-size: 0.9rem;
-        gap: 10px;
-    }
-    .watched-date {
-        font-size: 0.8rem;
-        padding: 0 12px 12px 12px;
-    }
-    .no-history {
-        padding: 60px 16px;
-    }
-    .no-history-icon {
-        font-size: 56px;
-    }
-    .no-history p {
-        font-size: 1rem;
-    }
+    .history-container { padding: 14px 12px; }
+    .history-header { flex-direction: column; align-items: stretch; gap: 14px; }
+    .history-title { font-size: 1.4rem; justify-content: center; }
+    .clear-history-btn { justify-content: center; width: 100%; }
+    .history-grid { grid-template-columns: 1fr; gap: 18px; }
+    .more-btn svg { width: 20px; height: 20px; }
+    .dropdown-menu { width: 180px; top: calc(100% + 4px); }
+    .dropdown-item { padding: 8px 14px; font-size: 0.85rem; gap: 10px; }
+    .watched-date { font-size: 0.75rem; padding: 0 10px 10px 10px; }
+    .history-item .video-info { padding: 4px 8px !important; }
+    .history-item .video-info h3 { font-size: 14px; margin: 0 0 1px 0 !important; }
+    .history-item .video-creator { font-size: 12px; margin: 1px 0 !important; }
+    .history-item .video-meta { margin-top: 1px !important; }
 }
 
-/* ---------- SMALL PHONES (≤480px) ---------- */
 @media (max-width: 480px) {
-    .history-container {
-        padding: 10px 8px;
-    }
-    .history-title {
-        font-size: 1.2rem;
-        gap: 6px;
-    }
-    .history-title-icon {
-        font-size: 1.3rem;
-    }
-    .clear-history-btn {
-        font-size: 0.8rem;
-        padding: 8px 12px;
-        gap: 6px;
-        border-radius: 8px;
-    }
-    .history-grid {
-        gap: 14px;
-    }
-    .more-btn {
-        top: 210px;
-        right: 8px;
-        width: 28px;
-        height: 28px;
-    }
-    .more-btn svg {
-        width: 16px;
-        height: 16px;
-    }
-    .dropdown-menu {
-        width: 160px;
-        right: 58px;
-        top: 210px;
-        border-radius: 8px;
-    }
-    .dropdown-item {
-        padding: 8px 12px;
-        font-size: 0.8rem;
-        gap: 8px;
-    }
-    .dropdown-item svg {
-        font-size: 16px;
-    }
-    .watched-date {
-        font-size: 0.7rem;
-        padding: 0 10px 10px 10px;
-        gap: 4px;
-        flex-wrap: wrap;
-    }
-    .no-history {
-        padding: 40px 12px;
-    }
-    .no-history-icon {
-        font-size: 44px;
-    }
-    .no-history p {
-        font-size: 0.9rem;
-    }
-    .browse-btn {
-        padding: 10px 20px;
-        font-size: 0.9rem;
-    }
-    .history-error {
-        font-size: 0.8rem;
-        padding: 10px 12px;
-    }
+    .history-container { padding: 10px 8px; }
+    .history-title { font-size: 1.2rem; }
+    .clear-history-btn { font-size: 0.8rem; padding: 8px 12px; }
+    .history-grid { gap: 14px; }
+    .more-btn svg { width: 18px; height: 18px; }
+    .dropdown-menu { width: 160px; right: -4px; border-radius: 8px; top: calc(100% + 4px); }
+    .dropdown-item { padding: 6px 12px; font-size: 0.8rem; gap: 8px; }
+    .dropdown-item svg { font-size: 16px; }
+    .watched-date { font-size: 0.65rem; padding: 0 8px 8px 8px; flex-wrap: wrap; }
+    .history-item .video-info { padding: 4px 6px !important; }
+    .history-item .video-info h3 { font-size: 13px; margin: 0 0 1px 0 !important; }
+    .history-item .video-creator { font-size: 11px; margin: 1px 0 !important; }
+    .history-item .video-meta { margin-top: 1px !important; font-size: 10px; }
 }
 
-/* ---------- EXTRA SMALL (≤360px) ---------- */
 @media (max-width: 360px) {
-    .history-title {
-        font-size: 1rem;
-    }
-    .clear-history-btn {
-        font-size: 0.7rem;
-        padding: 6px 10px;
-    }
-    .dropdown-menu {
-        width: 140px;
-        right: 6px;
-        top: 32px;
-    }
-    .dropdown-item {
-        font-size: 0.75rem;
-        padding: 6px 10px;
-        gap: 6px;
-    }
-    .watched-date {
-        font-size: 0.65rem;
-    }
+    .dropdown-menu { width: 140px; }
+    .dropdown-item { padding: 6px 10px; font-size: 0.7rem; }
 }

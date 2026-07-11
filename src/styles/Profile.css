@@ -798,12 +798,14 @@
 }
 
 /* ---------- VIDEO ACTIONS ---------- */
-.video-actions {
-    display: flex;
-    gap: 8px;
-    padding: 8px 16px 14px;
-    border-top: 1px solid var(--border-color);
-    margin-top: auto;
+.video-actions{
+    position:relative;
+    display:inline-flex;
+    align-items:flex-start;
+    justify-content:flex-start;
+    flex-shrink:0;
+    width:32px;
+    height:32px;
 }
 
 .edit-btn {

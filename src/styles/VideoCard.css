@@ -89,7 +89,7 @@
    CONTENT
    ========================= */
 .video-info {
-    padding: 12px 14px;
+    padding: 8px 12px;
     position: relative;
     overflow: visible;
 }
@@ -98,7 +98,7 @@
     font-size: 16px;
     font-weight: 600;
     line-height: 1.4;
-    margin: 0 0 6px 0;
+    margin: 0 0 2px 0;
     display: -webkit-box;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
@@ -109,7 +109,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    margin: 6px 0;
+    margin: 2px 0;
     color: #b3b3b3;
     font-size: 14px;
 }
