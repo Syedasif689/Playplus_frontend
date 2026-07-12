@@ -42,34 +42,56 @@ function Profile() {
     try {
 
         const imageUrl = await uploadToCloudinary(
-            file,
-            "image",
-            `playplus/${user.username}/profile`
+          file,
+          "image",
+          `playplus/${user.username}/profile`
         );
 
-        console.log(imageUrl);
+        const updatedUser = {
+        ...user,
+        profileImage: imageUrl
+     };
 
-        // Save into database
-       await userApi.updateProfileImage(imageUrl);
+     setUser(updatedUser);
 
-       const updatedUser = {
-       ...user,
-       profileImage: imageUrl
-    };
+     localStorage.setItem("user", JSON.stringify(updatedUser));
 
-    setUser(updatedUser);
-
-    localStorage.setItem(
-    "user",
-    JSON.stringify(updatedUser)
-   );
-
+     // Save in DB in background
+    userApi.updateProfileImage(imageUrl)
+    .catch(err => console.error(err));
     } catch (err) {
 
         console.error(err);
         alert("Failed to upload profile picture.");
 
     }
+};
+                
+     const handleRemoveProfileImage = async () => {
+
+    if (!window.confirm("Remove your profile picture?")) {
+        return;
+    }
+
+    // Update UI immediately
+    const updatedUser = {
+        ...user,
+        profileImage: null
+    };
+
+    setUser(updatedUser);
+
+    localStorage.setItem(
+        "user",
+        JSON.stringify(updatedUser)
+    );
+
+    // Save in background
+    userApi.updateProfileImage("")
+        .catch(err => {
+            console.error(err);
+            alert("Failed to remove profile picture.");
+        });
 };
  
     // Check for milestone
@@ -267,6 +289,14 @@ function Profile() {
     hidden
     onChange={handleProfileImage}
 />
+   {user.profileImage && (
+    <button
+        className="remove-profile-btn"
+        onClick={handleRemoveProfileImage}
+    >
+        Remove Photo
+    </button>
+)}
                        </div>
                     <div className="profile-info">
                         <div className="profile-header-row">

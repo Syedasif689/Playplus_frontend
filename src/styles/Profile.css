@@ -43,7 +43,13 @@ button {
     min-height: 100vh;
     background: var(--bg);
 }
-
+.remove-profile-btn {
+    margin-top: 10px;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+}
 /* ==========================================
    HEADER
 ==========================================*/
