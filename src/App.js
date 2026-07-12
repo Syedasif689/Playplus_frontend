@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import Navbar from "./components/Navbar";
+import EditProfile from "./pages/EditProfile";
 
 import Home from "./pages/Home";
 import Watch from "./pages/Watch";
@@ -30,6 +31,7 @@ function App() {
           <Route path="/trending" element={<Trending />} />
           <Route path="/milestones" element={<Milestones />} />
           <Route path="/edit/:videoId" element={<EditVideo />} />
+          <Route path="/edit-profile" element={<EditProfile />} />
           <Route path="/history" element={<History />} />
           <Route path="/liked" element={<LikedVideos />} />
           <Route path="/search" element={<SearchResults />} />

@@ -7,6 +7,7 @@ const API = axios.create({
     },
 });
 
+
 // Add token to requests
 API.interceptors.request.use(
     (config) => {
@@ -42,6 +43,9 @@ API.interceptors.response.use(
 );
 
 // Video API calls
+export const getProfile = () => {
+    return API.get("/user/profile");
+};
 export const videoApi = {
     getAll: () => API.get('/videos/all'),
     getVideo: (videoId) => API.get(`/videos/video/${videoId}`),  // ✅ FIXED
@@ -60,6 +64,7 @@ export const videoApi = {
 
 // Comment API calls
 export const commentApi = {
+    
     getComments: (videoId) => API.get(`/comments/video/${videoId}`),
     addComment: (videoId, text, parentCommentId = null) => 
         API.post(`/comments/video/${videoId}`, { text, parentCommentId }),

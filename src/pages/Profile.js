@@ -301,10 +301,13 @@ function Profile() {
                     <div className="profile-info">
                         <div className="profile-header-row">
                             <h1>{user.username}</h1>
-                            <button className="edit-profile-btn">
-                               <FiEdit />
-                                <span>Edit Profile</span>
-                              </button>
+                            <button
+                               className="edit-profile-btn"
+                                onClick={() => navigate("/edit-profile")}
+                           >
+                              <FiEdit />
+                                   <span>Edit Profile</span>
+                            </button>
                         </div>
                         <p className="profile-email">{user.email}</p>
 

@@ -1,0 +1,131 @@
+.edit-profile-page{
+    min-height:100vh;
+    background:#0f0f0f;
+    display:flex;
+    justify-content:center;
+    padding:40px 20px;
+}
+
+.edit-profile-card{
+    width:100%;
+    max-width:700px;
+    background:#1a1a1a;
+    border-radius:18px;
+    padding:30px;
+}
+
+.edit-profile-card h1{
+    color:white;
+    margin-bottom:30px;
+}
+
+.profile-photo-section{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:16px;
+    margin-bottom:30px;
+}
+
+.profile-preview{
+    width:120px;
+    height:120px;
+    border-radius:50%;
+    object-fit:cover;
+}
+
+.change-photo-btn{
+    padding:10px 18px;
+    border:none;
+    border-radius:10px;
+    background:#3ea6ff;
+    color:white;
+    cursor:pointer;
+    font-weight:600;
+}
+.social-input{
+    display:flex;
+    align-items:center;
+    background:#2b2b2b;
+    border:1px solid #3d3d3d;
+    border-radius:10px;
+    padding:0 14px;
+}
+
+.social-input input{
+    flex:1;
+    background:transparent;
+    border:none;
+    outline:none;
+    color:white;
+    padding:14px 12px;
+    font-size:15px;
+}
+
+.social-icon{
+    font-size:22px;
+}
+
+.instagram{
+    color:#E4405F;
+}
+
+.facebook{
+    color:#1877F2;
+}
+
+.github{
+    color:#ffffff;
+}
+
+.linkedin{
+    color:#0A66C2;
+}
+
+.social-input:focus-within{
+    border-color:#3ea6ff;
+}
+.form-group{
+    display:flex;
+    flex-direction:column;
+    margin-bottom:22px;
+}
+
+.form-group label{
+    color:#ccc;
+    margin-bottom:8px;
+    font-size:14px;
+}
+
+.form-group input,
+.form-group textarea{
+    background:#2b2b2b;
+    border:1px solid #3d3d3d;
+    color:white;
+    border-radius:10px;
+    padding:12px;
+    font-size:15px;
+    outline:none;
+}
+
+.form-group input:focus,
+.form-group textarea:focus{
+    border-color:#3ea6ff;
+}
+
+.edit-profile-card h2{
+    color:white;
+    margin:35px 0 20px;
+}
+
+.save-btn{
+    width:100%;
+    padding:14px;
+    border:none;
+    border-radius:10px;
+    background:#3ea6ff;
+    color:white;
+    font-size:16px;
+    font-weight:600;
+    cursor:pointer;
+}
