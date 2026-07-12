@@ -19,7 +19,7 @@ import {
 import { uploadToCloudinary } from "../utils/cloudinaryUpload";
 
 function Profile() {
-    const { user, logout, loading: authLoading } = useAuth();
+    const { user, setUser, logout, loading: authLoading } = useAuth();    
     const navigate = useNavigate();
     const [userVideos, setUserVideos] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -52,10 +52,17 @@ function Profile() {
         // Save into database
        await userApi.updateProfileImage(imageUrl);
 
-        // Update UI immediately
-        user.profileImage = imageUrl;
+       const updatedUser = {
+       ...user,
+       profileImage: imageUrl
+    };
 
-        window.location.reload();
+    setUser(updatedUser);
+
+    localStorage.setItem(
+    "user",
+    JSON.stringify(updatedUser)
+   );
 
     } catch (err) {
 
@@ -241,9 +248,9 @@ function Profile() {
 
     {user.profileImage ? (
         <img
-            src={user.profileImage}
-            alt={user.username}
-            className="avatar-image"
+        src={`${user.profileImage}?t=${Date.now()}`}
+        className="avatar-image"
+        alt={user.username}
         />
     ) : (
         <div className="avatar-placeholder">
