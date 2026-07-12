@@ -85,7 +85,7 @@ function SignupModal({ isOpen, onClose, onSwitchToLogin }) {
             const { token, id, username, email } = loginResponse.data;
             
             localStorage.setItem('token', token);
-            localStorage.setItem('user', JSON.stringify({ id, username, email }));
+            localStorage.setItem('user', JSON.stringify({ id, username, email, profileImage: userInfo.picture }));
             
             onClose();
             window.location.reload();

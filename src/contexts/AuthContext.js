@@ -21,12 +21,31 @@ export const AuthProvider = ({ children }) => {
     const login = async (username, password) => {
         try {
             const response = await API.post('/auth/login', { username, password });
-            const { token, id, username: userName, email } = response.data;
-            
-            localStorage.setItem('token', token);
-            localStorage.setItem('user', JSON.stringify({ id, username: userName, email }));
-            
-            setUser({ id, username: userName, email });
+           const {
+    token,
+    id,
+    username: userName,
+    email,
+    profileImage
+} = response.data;
+localStorage.setItem("token", token);
+
+localStorage.setItem(
+    "user",
+    JSON.stringify({
+        id,
+        username: userName,
+        email,
+        profileImage
+    })
+);
+
+setUser({
+    id,
+    username: userName,
+    email,
+    profileImage
+});
             return { success: true };
         } catch (error) {
             return { success: false, message: error.response?.data || 'Login failed' };

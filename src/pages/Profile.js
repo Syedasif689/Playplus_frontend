@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
-import { videoApi, channelApi } from '../services/api';
-import { checkMilestone, markMilestoneShown, hasShownMilestone } from '../services/milestoneService';
+import { videoApi, channelApi, userApi } from '../services/api';import { checkMilestone, markMilestoneShown, hasShownMilestone } from '../services/milestoneService';
 import MilestoneNotification from '../components/MilestoneNotification';
 import MilestoneCelebration from '../components/MilestoneCelebration';
 import '../styles/Profile.css';
@@ -17,7 +16,7 @@ import {
   FiCalendar,
   FiThumbsUp
 } from "react-icons/fi";
-
+import { uploadToCloudinary } from "../utils/cloudinaryUpload";
 
 function Profile() {
     const { user, logout, loading: authLoading } = useAuth();
@@ -34,8 +33,38 @@ function Profile() {
         totalViews: 0,
         totalLikes: 0
     });
+     const handleProfileImage = async (e) => {
 
+    const file = e.target.files[0];
 
+    if (!file) return;
+
+    try {
+
+        const imageUrl = await uploadToCloudinary(
+            file,
+            "image",
+            `playplus/${user.username}/profile`
+        );
+
+        console.log(imageUrl);
+
+        // Save into database
+       await userApi.updateProfileImage(imageUrl);
+
+        // Update UI immediately
+        user.profileImage = imageUrl;
+
+        window.location.reload();
+
+    } catch (err) {
+
+        console.error(err);
+        alert("Failed to upload profile picture.");
+
+    }
+};
+ 
     // Check for milestone
     const checkForMilestone = useCallback((currentCount, prevCount) => {
         const milestone = checkMilestone(currentCount, prevCount);
@@ -130,7 +159,7 @@ function Profile() {
                 ...prev,
                 totalVideos: prev.totalVideos - 1
             }));
-            alert('✅ Video deleted successfully!');
+            alert('Video deleted successfully!');
         } catch (error) {
             console.error('Error deleting video:', error);
             alert('Failed to delete video. Please try again.');
@@ -142,9 +171,10 @@ function Profile() {
         logout();
         navigate('/');
     };
-
+      
     // ✅ UPDATED: Wave loading animation
     if (authLoading || loading) {
+        
     return (
         <div className="profile-container">
             <div className="loading-wrapper">
@@ -179,7 +209,8 @@ function Profile() {
     if (!user) {
         return null;
     }
-
+        console.log("Current User:", user);
+        console.log("Profile Image:", user?.profileImage);
     return (
         <div className="profile-container">
             {/* Milestone Notification */}
@@ -202,10 +233,34 @@ function Profile() {
             <div className="profile-banner">
                 <div className="profile-banner-content">
                     <div className="profile-avatar">
-                        <div className="avatar-large">
-                            {user.username?.charAt(0).toUpperCase() || 'U'}
-                        </div>
-                    </div>
+
+                           <div
+    className="avatar-wrapper"
+    onClick={() => document.getElementById("profileImageInput").click()}
+>
+
+    {user.profileImage ? (
+        <img
+            src={user.profileImage}
+            alt={user.username}
+            className="avatar-image"
+        />
+    ) : (
+        <div className="avatar-placeholder">
+            {user.username?.charAt(0).toUpperCase()}
+        </div>
+    )}
+
+</div>
+
+<input
+    id="profileImageInput"
+    type="file"
+    accept="image/*"
+    hidden
+    onChange={handleProfileImage}
+/>
+                       </div>
                     <div className="profile-info">
                         <div className="profile-header-row">
                             <h1>{user.username}</h1>

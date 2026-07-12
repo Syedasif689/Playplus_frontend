@@ -3,10 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { videoApi } from '../services/api';
 import '../styles/Upload.css';
+import { uploadToCloudinary } from "../utils/cloudinaryUpload";
 
 // 🔥 REPLACE WITH YOUR CLOUDINARY CREDENTIALS 🔥
-const CLOUDINARY_CLOUD_NAME = 'duvjw7dti'; // <-- CHANGE THIS
-const CLOUDINARY_UPLOAD_PRESET = 'playplus_uploads';   // <-- CHANGE THIS
+   // <-- CHANGE THIS
 
 function Upload() {
     const { user } = useAuth();
@@ -74,36 +74,6 @@ function Upload() {
     };
 
     // Upload file to Cloudinary
-    const uploadToCloudinary = async (file, resourceType) => {
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-        formData.append('folder', `playplus/${user.username}`);
-
-        return new Promise((resolve, reject) => {
-            const xhr = new XMLHttpRequest();
-            xhr.open('POST', `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/${resourceType}/upload`);
-            
-            xhr.upload.onprogress = (event) => {
-                if (event.lengthComputable) {
-                    const progress = Math.round((event.loaded / event.total) * 100);
-                    setUploadProgress(progress);
-                }
-            };
-
-            xhr.onload = () => {
-                if (xhr.status === 200) {
-                    const response = JSON.parse(xhr.responseText);
-                    resolve(response.secure_url);
-                } else {
-                    reject(new Error('Upload failed: ' + xhr.statusText));
-                }
-            };
-            xhr.onerror = () => reject(new Error('Network error'));
-            xhr.send(formData);
-        });
-    };
-
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');

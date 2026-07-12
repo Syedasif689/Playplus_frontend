@@ -82,6 +82,10 @@ export const channelApi = {
 
 // User API calls (History & Liked)
 export const userApi = {
+    updateProfileImage: (imageUrl) =>
+    API.put("/user/profile-image", {
+        profileImage: imageUrl
+    }),
     getHistory: () => API.get('/user/history'),
     clearHistory: () => API.delete('/user/history'),
     getLikedVideos: () => API.get('/user/liked-videos'),

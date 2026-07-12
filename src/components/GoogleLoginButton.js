@@ -21,10 +21,23 @@ function GoogleLoginButton({ onSuccess, onError }) {
                 profilePicture: userInfo.picture
             });
 
-            const { token, id, username, email } = loginResponse.data;
-            
-            localStorage.setItem('token', token);
-            localStorage.setItem('user', JSON.stringify({ id, username, email }));
+            const {
+    token,
+    id,
+    username,
+    email,
+    profileImage
+} = loginResponse.data;
+
+localStorage.setItem(
+    "user",
+    JSON.stringify({
+        id,
+        username,
+        email,
+        profileImage
+    })
+);
             
             if (onSuccess) {
                 onSuccess(loginResponse.data);
