@@ -133,9 +133,8 @@ function Profile() {
                 const channelData = channelResponse.data;
                 setSubscriberCount(channelData.subscriberCount || 0);
 
-                const response = await videoApi.getAll();
-                const allVideos = response.data || [];
-                const userVideosList = allVideos.filter(v => v.creator === user.username);
+                const response = await videoApi.getByCreator(user.id);
+                const userVideosList = response.data || [];
                 
                 setUserVideos(userVideosList);
                 

@@ -10,7 +10,7 @@ import API from "../services/api";
 import { useNavigate } from "react-router-dom";
 
 function EditProfile() {
-    const { user, setUser } = useAuth();
+    const {  setUser } = useAuth();
     const navigate = useNavigate();
     const [username, setUsername] = useState("");
     const [bio, setBio] = useState("");
@@ -35,6 +35,7 @@ function EditProfile() {
         };
 
        const response = await API.put("/user/profile", request);
+       console.log(response.data);
         // Update AuthContext
         const updatedUser = {
           ...response.data
@@ -52,40 +53,46 @@ function EditProfile() {
         alert("Failed to update profile");
     }
 };
-    useEffect(() => {
-    if (!user) return;
+   useEffect(() => {
+    const loadProfile = async () => {
+        try {
+            const response = await API.get("/user/profile");
 
-    setUsername(user.username || "");
-    setBio(user.bio || "");
+            const profile = response.data;
 
-    if (user.socialLinks) {
-        user.socialLinks.forEach((link) => {
+            setUsername(profile.username || "");
+            setBio(profile.bio || "");
 
-            switch (link.platform.toLowerCase()) {
+            profile.socialLinks?.forEach(link => {
+               switch (link.platform.toLowerCase()) {
+    case "instagram":
+        setInstagram(link.url);
+        break;
 
-                case "instagram":
-                    setInstagram(link.url);
-                    break;
+    case "facebook":
+        setFacebook(link.url);
+        break;
 
-                case "facebook":
-                    setFacebook(link.url);
-                    break;
+    case "github":
+        setGithub(link.url);
+        break;
 
-                case "github":
-                    setGithub(link.url);
-                    break;
+    case "linkedin":
+        setLinkedin(link.url);
+        break;
 
-                case "linkedin":
-                    setLinkedin(link.url);
-                    break;
+    default:
+        break;
+}
+            });
 
-                default:
-                    break;
-            }
-        });
-    }
+        } catch (err) {
+            console.error(err);
+        }
+    };
 
-}, [user]);
+    loadProfile();
+}, []);
     return (
         <div className="edit-profile-page">
 
