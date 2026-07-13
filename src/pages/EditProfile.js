@@ -20,9 +20,8 @@ function EditProfile() {
     const [github, setGithub] = useState("");
     const [linkedin, setLinkedin] = useState("");
     
-    const saveProfile = async () => {
+   const saveProfile = async () => {
     try {
-
         const request = {
             username,
             bio,
@@ -34,25 +33,30 @@ function EditProfile() {
             ]
         };
 
-       const response = await API.put("/user/profile", request);
-       console.log(response.data);
-        // Update AuthContext
-        const updatedUser = {
-          ...response.data
-        };
+        // Update profile
+        const response = await API.put("/user/profile", request);
 
-         localStorage.setItem("user", JSON.stringify(updatedUser));
-         localStorage.setItem("token", response.data.token);
+        // Save new token
+        localStorage.setItem("token", response.data.token);
 
-         setUser(updatedUser);
+        // Update logged in user
+        setUser(response.data);
 
-         navigate("/profile");
+        // Update local storage
+        localStorage.setItem(
+            "user",
+            JSON.stringify(response.data)
+        );
+
+        navigate("/profile");
 
     } catch (error) {
         console.error(error);
         alert("Failed to update profile");
     }
 };
+
+
    useEffect(() => {
     const loadProfile = async () => {
         try {

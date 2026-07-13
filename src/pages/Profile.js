@@ -33,7 +33,7 @@ function Profile() {
         totalViews: 0,
         totalLikes: 0
     });
-     const handleProfileImage = async (e) => {
+    const handleProfileImage = async (e) => {
 
     const file = e.target.files[0];
 
@@ -42,19 +42,23 @@ function Profile() {
     try {
 
         const imageUrl = await uploadToCloudinary(
-          file,
-          "image",
-          `playplus/${user.username}/profile`
+            file,
+            "image",
+            `playplus/${user.username}/profile`
         );
 
         const updatedUser = {
-        ...user,
-        profileImage: imageUrl
-     };
+            ...user,
+            profileImage: imageUrl
+        };
 
-     setUser(updatedUser);
+        setUser(updatedUser);
 
-     localStorage.setItem("user", JSON.stringify(updatedUser));
+        localStorage.setItem(
+            "user",
+            JSON.stringify(updatedUser)
+        );
+
 
      // Save in DB in background
     userApi.updateProfileImage(imageUrl)
@@ -309,6 +313,28 @@ function Profile() {
                             </button>
                         </div>
                         <p className="profile-email">{user.email}</p>
+                        {user.bio && (
+                         <p className="profile-bio">
+                           {user.bio}
+                          </p>
+                        )}
+                        {user.socialLinks?.length > 0 && (
+                          <div className="profile-social-links">
+                          {user.socialLinks.map((link, index) => (
+                          link.url && (
+                        <a
+                         key={index}
+                         href={link.url}
+                         target="_blank"
+                         rel="noopener noreferrer"
+                         className={`social-link ${link.platform.toLowerCase()}`}
+                        >
+                        {link.platform}
+                        </a>
+                         )
+                        ))}
+                       </div>
+                     )}
 
                         {/* Subscriber Count */}
                         <div className="profile-subscriber-count">

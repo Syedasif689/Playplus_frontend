@@ -7,16 +7,23 @@ export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(true);
+
 
     useEffect(() => {
-        const token = localStorage.getItem('token');
-        const savedUser = localStorage.getItem('user');
-        if (token && savedUser) {
-            setUser(JSON.parse(savedUser));
-        }
-        setLoading(false);
-    }, []);
+    const token = localStorage.getItem("token");
+
+    if (!token) return;
+
+    API.get("/user/me")
+        .then(res => {
+            setUser(res.data);
+            localStorage.setItem(
+                "user",
+                JSON.stringify(res.data)
+            );
+        })
+        .catch(() => logout());
+}, []);
 
     const login = async (username, password) => {
         try {
@@ -40,18 +47,22 @@ localStorage.setItem(
     })
 );
 
-setUser({
-    id,
-    username: userName,
-    email,
-    profileImage
-});
+    localStorage.setItem("token", token);
+
+    const profile = await API.get("/user/me");
+
+       setUser(profile.data);
+
+     localStorage.setItem(
+       "user",
+       JSON.stringify(profile.data)
+     );
             return { success: true };
         } catch (error) {
             return { success: false, message: error.response?.data || 'Login failed' };
         }
     };
-
+     const loading = false;
     const signup = async (userData) => {
         try {
             await API.post('/auth/signup', userData);
@@ -75,7 +86,8 @@ setUser({
         login,
         signup,
         logout,
-        loading
+        loading,
+       
     }}
 >
             {children}

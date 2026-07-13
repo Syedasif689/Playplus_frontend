@@ -36,7 +36,9 @@ function Channel() {
     if (count >= 1000) return (count / 1000).toFixed(1) + 'K';
     return count.toString();
   };
-
+const [bio, setBio] = useState("");
+const [socialLinks, setSocialLinks] = useState([]);
+const [profileImage, setProfileImage] = useState(null);
   // ✅ Load channel info from backend
   useEffect(() => {
     const loadChannelInfo = async () => {
@@ -44,7 +46,9 @@ function Channel() {
       try {
         const response = await channelApi.getChannel(creator);
         const data = response.data;
-        
+        setBio(data.bio || "");
+        setProfileImage(data.profileImage || null);
+        setSocialLinks(data.socialLinks || []);
         setSubscriberCount(data.subscriberCount || 0);
         setSubscribed(data.isSubscribed || false);
         setIsOwnChannel(data.isOwnChannel || false);
@@ -215,11 +219,46 @@ function Channel() {
       <div className="channel-banner"></div>
 
       <div className="channel-avatar">
-           <FaUserCircle size={80} />
-      </div>
+
+      {profileImage ? (
+
+     <img
+        src={profileImage}
+        alt={creator}
+        className="channel-profile-image"
+    />
+
+    ) : (
+
+     <FaUserCircle size={80}/>
+
+    )}
+
+</div>
         <div className="channel-info">
           <div className="channel-title-row">
             <h1>{creator || 'Unknown Creator'}</h1>
+              {socialLinks.length > 0 && (
+           <div className="channel-links">
+
+           {socialLinks.map((link,index)=>(
+            <a
+                key={index}
+                href={link.url}
+                target="_blank"
+                rel="noreferrer"
+            >
+                {link.platform}
+            </a>
+        ))}
+           {bio && (
+              <p className="channel-bio">
+               {bio}
+             </p>
+           )}
+
+         </div>
+       )}
             <div className="channel-actions-row">
               <button
                className={`subscribe-btn ${subscribed ? 'subscribed' : ''} ${isOwnChannel ? 'own-channel' : ''}`}

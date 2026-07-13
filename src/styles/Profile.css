@@ -1,5 +1,5 @@
 /* ==========================================
-   PLAY+ PROFILE
+   PLAY+ PROFILE — Fully Responsive
 ==========================================*/
 
 :root {
@@ -36,6 +36,7 @@ a {
 
 button {
     font-family: inherit;
+    cursor: pointer;
 }
 
 .profile-container {
@@ -43,15 +44,9 @@ button {
     min-height: 100vh;
     background: var(--bg);
 }
-.remove-profile-btn {
-    margin-top: 10px;
-    padding: 8px 16px;
-    border: none;
-    border-radius: 20px;
-    cursor: pointer;
-}
+
 /* ==========================================
-   HEADER
+   HEADER / BANNER
 ==========================================*/
 
 .profile-banner {
@@ -65,8 +60,8 @@ button {
     padding: 36px 24px;
     display: grid;
     grid-template-columns: auto 1fr auto;
-    align-items: center;          /* ← vertical centering */
-    gap: 40px;                   /* ← increased gap for clarity */
+    align-items: center;
+    gap: 40px;
 }
 
 /* --- Avatar --- */
@@ -75,11 +70,12 @@ button {
     width: 120px;
     height: 120px;
     flex-shrink: 0;
+    align-self: flex-start;
 }
 
 .avatar-wrapper {
-    width: 120%;                 /* ← fixed: was 120% */
-    height: 120%;                /* ← fixed */
+    width: 100%;
+    height: 100%;
     border-radius: 50%;
     overflow: hidden;
     cursor: pointer;
@@ -88,8 +84,9 @@ button {
     align-items: center;
     justify-content: center;
     position: relative;
-    border: 2px solid rgba(255,255,255,0.15);  /* ← subtle border */
-    box-shadow: 0 4px 20px rgba(0,0,0,0.5);    /* ← soft shadow for depth */
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    transition: var(--transition);
 }
 
 .avatar-image {
@@ -113,7 +110,7 @@ button {
     font-weight: bold;
 }
 
-/* "Change" overlay on hover */
+/* "Change" overlay on hover (desktop) */
 .avatar-wrapper::after {
     content: "Change";
     position: absolute;
@@ -121,7 +118,7 @@ button {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(0, 0, 0, .55);
+    background: rgba(0, 0, 0, 0.6);
     color: #fff;
     border-radius: 50%;
     opacity: 0;
@@ -149,7 +146,6 @@ button {
     display: flex;
     align-items: center;
     justify-content: center;
-    cursor: pointer;
     transition: var(--transition);
     opacity: 0;
     transform: scale(0.8);
@@ -166,9 +162,36 @@ button {
     transform: scale(1);
 }
 
+/* Remove Photo button (below avatar) */
+.remove-profile-btn {
+    margin-top: 12px;
+    padding: 6px 14px;
+    border: none;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    color: #ff6b6b;
+    font-size: 12px;
+    font-weight: 500;
+    transition: var(--transition);
+    display: inline-block;
+    width: 100%;
+    text-align: center;
+}
+
+.remove-profile-btn:hover {
+    background: rgba(255, 0, 0, 0.2);
+    color: #ff4444;
+}
+
+/* Hidden file input */
+#profileImageInput {
+    display: none;
+}
+
 /* --- Profile Info --- */
 .profile-info {
     flex: 1;
+    min-width: 0;
 }
 
 .profile-header-row {
@@ -182,18 +205,51 @@ button {
 .profile-info h1 {
     font-size: 34px;
     margin: 0;
+    word-break: break-word;
 }
 
 .profile-email {
-    margin: 6px 0 18px;
+    margin: 6px 0 10px;
     color: #aaa;
     font-size: 15px;
+    word-break: break-all;
 }
 
+.profile-bio {
+    margin: 10px 0 0;
+    color: #ddd;
+    font-size: 15px;
+    line-height: 1.6;
+    max-width: 650px;
+    word-break: break-word;
+}
+
+.profile-social-links {
+    margin-top: 12px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.social-link {
+    padding: 6px 14px;
+    border-radius: 25px;
+    background: #222;
+    color: #fff;
+    font-size: 14px;
+    transition: var(--transition);
+    text-decoration: none;
+}
+
+.social-link:hover {
+    background: var(--primary);
+    color: #fff;
+}
+
+/* Edit & Logout buttons */
 .edit-profile-btn,
 .logout-profile-btn {
     border: none;
-    cursor: pointer;
     border-radius: 999px;
     padding: 10px 20px;
     font-size: 14px;
@@ -223,25 +279,12 @@ button {
     background: var(--danger);
 }
 
-.profile-bio {
-    margin: 16px 0;
-}
-
-.profile-bio p {
-    color: var(--text-secondary);
-    line-height: 1.6;
-}
-
-.profile-bio-empty {
-    color: #888;
-    margin: 16px 0;
-}
-
+/* Subscriber count & stats */
 .profile-subscriber-count {
     display: flex;
     align-items: center;
     gap: 10px;
-    margin-bottom: 20px;
+    margin: 16px 0 10px;
     flex-wrap: wrap;
 }
 
@@ -255,10 +298,15 @@ button {
     font-size: 17px;
 }
 
+.subscriber-icon {
+    font-size: 22px;
+    color: #3ea6ff;
+}
+
 .profile-stats {
     display: flex;
     gap: 40px;
-    margin-top: 24px;
+    margin-top: 16px;
     flex-wrap: wrap;
 }
 
@@ -266,11 +314,6 @@ button {
     display: flex;
     align-items: center;
     gap: 10px;
-}
-
-.stat-item div {
-    display: flex;
-    flex-direction: column;
 }
 
 .stat-icon {
@@ -287,11 +330,6 @@ button {
     margin-top: 4px;
     color: var(--text-secondary);
     font-size: 13px;
-}
-
-.subscriber-icon {
-    font-size: 22px;
-    color: #3ea6ff;
 }
 
 /* ==========================================
@@ -400,6 +438,7 @@ button {
     font-size: 17px;
     margin-bottom: 8px;
     line-height: 1.4;
+    word-break: break-word;
 }
 
 .video-info p {
@@ -449,7 +488,7 @@ button {
     font-size: 14px;
     font-weight: 600;
     text-decoration: none;
-    transition: black;
+    transition: var(--transition);
     white-space: nowrap;
 }
 
@@ -466,7 +505,6 @@ button {
     background: black;
     color: #f3eded;
     border: none;
-    cursor: pointer;
 }
 
 .delete-btn:hover {
@@ -606,14 +644,14 @@ button {
 
 /* ==========================================
    RESPONSIVE BREAKPOINTS
-   (all text labels remain visible)
+   (all labels remain fully visible)
 ==========================================*/
 
 /* --- Tablets & small laptops --- */
 @media (max-width: 1024px) {
     .profile-banner-content {
         padding: 30px 20px;
-        gap: 30px;              /* slightly reduced but still clear */
+        gap: 30px;
     }
 
     .profile-avatar {
@@ -760,7 +798,6 @@ button {
 
 /* --- Mobile large (up to 768px) --- */
 @media (max-width: 768px) {
-    /* Always show avatar edit button on touch devices */
     .avatar-edit-btn {
         opacity: 1;
         transform: scale(1);
@@ -771,28 +808,34 @@ button {
     }
 }
 
-/* --- Mobile (≤650px) --- */
+/* --- Mobile (≤650px) — BIGGER AVATAR & MORE SPACING --- */
 @media (max-width: 650px) {
     .profile-banner-content {
         padding: 20px 16px;
-        gap: 18px;
+        gap: 24px;              /* ← increased gap for more breathing room */
         grid-template-columns: auto 1fr;
     }
 
     .profile-avatar {
         grid-row: 1 / 2;
         align-self: start;
-        width: 64px;
-        height: 64px;
+        width: 80px;            /* ← bigger avatar (was 64px) */
+        height: 80px;
+    }
+
+    .avatar-wrapper {
+        border: 3px solid rgba(255, 255, 255, 0.25); /* ← thicker border for visibility */
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.6);
     }
 
     .avatar-placeholder {
-        font-size: 28px;
+        font-size: 34px;        /* ← bigger text in placeholder */
     }
 
     .profile-info {
         grid-column: 2;
         grid-row: 1/2;
+        padding-left: 4px;      /* ← slight extra space from avatar */
     }
 
     .profile-header-row {
@@ -823,6 +866,14 @@ button {
         font-size: 14px;
         justify-content: center;
         width: 100%;
+    }
+
+    .remove-profile-btn {
+        width: auto;
+        text-align: left;
+        padding: 4px 10px;
+        margin-top: 6px;
+        font-size: 11px;
     }
 
     .profile-subscriber-count {
@@ -935,19 +986,29 @@ button {
     }
 }
 
-/* --- Mobile small (≤480px) --- */
+/* --- Mobile small (≤480px) — EVEN BIGGER AVATAR --- */
 @media (max-width: 480px) {
     .profile-banner-content {
         padding: 16px 12px;
-        gap: 14px;
+        gap: 20px;              /* ← increased gap */
     }
 
     .profile-avatar {
-        width: 52px;
-        height: 52px;
+        width: 68px;            /* ← bigger (was 52px) */
+        height: 68px;
     }
+
+    .avatar-wrapper {
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+    }
+
     .avatar-placeholder {
-        font-size: 22px;
+        font-size: 28px;
+    }
+
+    .profile-info {
+        padding-left: 4px;
     }
 
     .profile-info h1 {
@@ -969,6 +1030,14 @@ button {
         padding: 8px;
         font-size: 13px;
         gap: 6px;
+    }
+
+    .remove-profile-btn {
+        width: auto;
+        text-align: left;
+        padding: 4px 8px;
+        margin-top: 6px;
+        font-size: 10px;
     }
 
     .subscriber-number {
@@ -1095,15 +1164,25 @@ button {
 @media (max-width: 380px) {
     .profile-banner-content {
         padding: 12px 10px;
-        gap: 12px;
+        gap: 16px;              /* ← increased gap */
     }
 
     .profile-avatar {
-        width: 44px;
-        height: 44px;
+        width: 56px;            /* ← bigger (was 44px) */
+        height: 56px;
     }
+
+    .avatar-wrapper {
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+    }
+
     .avatar-placeholder {
-        font-size: 18px;
+        font-size: 22px;
+    }
+
+    .profile-info {
+        padding-left: 2px;
     }
 
     .profile-info h1 {
@@ -1125,6 +1204,14 @@ button {
         font-size: 12px;
     }
 
+    .remove-profile-btn {
+        width: auto;
+        text-align: left;
+        padding: 3px 8px;
+        margin-top: 4px;
+        font-size: 9px;
+    }
+
     .subscriber-number {
         font-size: 15px;
     }
@@ -1137,7 +1224,7 @@ button {
         min-width: 40px;
     }
     .stat-icon {
-        font-size: 15px;
+        font-size: 11px;
     }
     .stat-number {
         font-size: 12px;
@@ -1169,7 +1256,7 @@ button {
         display: none;
     }
     .video-meta {
-        font-size: 10px;
+        font-size: 8px;
     }
 
     .video-actions {
@@ -1180,7 +1267,7 @@ button {
     .edit-btn,
     .delete-btn {
         height: 26px;
-        font-size: 10px;
+        font-size: 9px;
         padding: 0 4px;
     }
 
