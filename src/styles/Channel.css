@@ -756,7 +756,7 @@
 }
 
 /* ============================================
-   MOBILE (≤480px) – buttons centered as a pair
+   MOBILE (≤480px) – larger profile image
    ============================================ */
 @media (max-width: 480px) {
     .channel-banner {
@@ -770,11 +770,22 @@
         align-items: flex-start;
     }
 
+    /* ✅ BIGGER AVATAR – 80px */
     .channel-avatar {
-        width: 60px;
-        height: 60px;
+        width: 80px;
+        height: 80px;
         border-width: 3px;
-        margin-top: -4px;
+        margin-top: -2px;
+        flex-shrink: 0;
+        overflow: hidden;
+        border-radius: 50%;
+        border: 3px solid var(--bg-primary);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 40px var(--accent-glow);
+        background: var(--bg-tertiary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
     }
 
     .channel-avatar svg {
@@ -807,7 +818,7 @@
 
     .subscribe-btn,
     .share-btn {
-        flex: 1 1 auto;          /* equal width */
+        flex: 1 1 auto;
         min-width: 0;
         padding: 6px 14px;
         font-size: 12px;

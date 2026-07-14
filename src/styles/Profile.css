@@ -644,7 +644,6 @@ button {
 
 /* ==========================================
    RESPONSIVE BREAKPOINTS
-   (all labels remain fully visible)
 ==========================================*/
 
 /* --- Tablets & small laptops --- */
@@ -808,34 +807,34 @@ button {
     }
 }
 
-/* --- Mobile (≤650px) — BIGGER AVATAR & MORE SPACING --- */
+/* --- Mobile (≤650px) — BIGGER AVATAR (90px) --- */
 @media (max-width: 650px) {
     .profile-banner-content {
         padding: 20px 16px;
-        gap: 24px;              /* ← increased gap for more breathing room */
+        gap: 24px;
         grid-template-columns: auto 1fr;
     }
 
     .profile-avatar {
         grid-row: 1 / 2;
         align-self: start;
-        width: 80px;            /* ← bigger avatar (was 64px) */
-        height: 80px;
+        width: 90px;            /* was 80px */
+        height: 90px;
     }
 
     .avatar-wrapper {
-        border: 3px solid rgba(255, 255, 255, 0.25); /* ← thicker border for visibility */
+        border: 3px solid rgba(255, 255, 255, 0.25);
         box-shadow: 0 4px 24px rgba(0, 0, 0, 0.6);
     }
 
     .avatar-placeholder {
-        font-size: 34px;        /* ← bigger text in placeholder */
+        font-size: 38px;        /* scaled up */
     }
 
     .profile-info {
         grid-column: 2;
         grid-row: 1/2;
-        padding-left: 4px;      /* ← slight extra space from avatar */
+        padding-left: 4px;
     }
 
     .profile-header-row {
@@ -986,16 +985,16 @@ button {
     }
 }
 
-/* --- Mobile small (≤480px) — EVEN BIGGER AVATAR --- */
+/* --- Mobile small (≤480px) — EVEN BIGGER AVATAR (80px) --- */
 @media (max-width: 480px) {
     .profile-banner-content {
         padding: 16px 12px;
-        gap: 20px;              /* ← increased gap */
+        gap: 20px;
     }
 
     .profile-avatar {
-        width: 68px;            /* ← bigger (was 52px) */
-        height: 68px;
+        width: 80px;            /* was 68px */
+        height: 80px;
     }
 
     .avatar-wrapper {
@@ -1004,7 +1003,7 @@ button {
     }
 
     .avatar-placeholder {
-        font-size: 28px;
+        font-size: 32px;        /* scaled up */
     }
 
     .profile-info {
@@ -1164,12 +1163,12 @@ button {
 @media (max-width: 380px) {
     .profile-banner-content {
         padding: 12px 10px;
-        gap: 16px;              /* ← increased gap */
+        gap: 16px;
     }
 
     .profile-avatar {
-        width: 56px;            /* ← bigger (was 44px) */
-        height: 56px;
+        width: 70px;            /* was 56px */
+        height: 70px;
     }
 
     .avatar-wrapper {
@@ -1178,7 +1177,7 @@ button {
     }
 
     .avatar-placeholder {
-        font-size: 22px;
+        font-size: 26px;        /* scaled up */
     }
 
     .profile-info {
