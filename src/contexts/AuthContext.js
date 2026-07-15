@@ -6,13 +6,19 @@ const AuthContext = createContext();
 export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }) => {
-    const [user, setUser] = useState(null);
+    const [user, setUser] = useState(() => {
+    const saved = localStorage.getItem("user");
+    return saved ? JSON.parse(saved) : null;
+    });
 
 
-    useEffect(() => {
+   useEffect(() => {
     const token = localStorage.getItem("token");
 
-    if (!token) return;
+    if (!token) {
+        setLoading(false);
+        return;
+    }
 
     API.get("/user/me")
         .then(res => {
@@ -22,7 +28,12 @@ export const AuthProvider = ({ children }) => {
                 JSON.stringify(res.data)
             );
         })
-        .catch(() => logout());
+        .catch(() => {
+            logout();
+        })
+        .finally(() => {
+            setLoading(false);
+        });
 }, []);
 
     const login = async (username, password) => {
@@ -62,7 +73,7 @@ localStorage.setItem(
             return { success: false, message: error.response?.data || 'Login failed' };
         }
     };
-     const loading = false;
+     const [loading, setLoading] = useState(true);
     const signup = async (userData) => {
         try {
             await API.post('/auth/signup', userData);
